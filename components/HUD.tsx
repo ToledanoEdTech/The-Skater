@@ -50,38 +50,55 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, onJ
       </div>
 
       {/* Mobile Controls - Arcade Style */}
-      <div className="pointer-events-auto md:hidden flex justify-between items-end mt-auto px-2 pb-4">
+      <div className="pointer-events-auto md:hidden flex justify-between items-end mt-auto px-2 pb-2 sm:pb-4">
         {/* Jump Button */}
         <button 
-            onTouchStart={(e) => { e.preventDefault(); onJump(); }}
-            className="w-24 h-24 rounded-full bg-gradient-to-b from-slate-600 to-slate-800 border-b-8 border-slate-900 shadow-2xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center group"
+            onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); onJump(); }}
+            onTouchEnd={(e) => { e.preventDefault(); }}
+            className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-b from-slate-600 to-slate-800 border-b-6 sm:border-b-8 border-slate-900 shadow-2xl active:border-b-0 active:translate-y-1 sm:active:translate-y-2 transition-all flex items-center justify-center group touch-manipulation"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
         >
-            <div className="w-20 h-20 rounded-full bg-slate-700 border-4 border-slate-500 flex items-center justify-center group-active:bg-slate-600">
-               <i className="fas fa-arrow-up text-4xl text-white/50 drop-shadow-md"></i>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-slate-700 border-3 sm:border-4 border-slate-500 flex items-center justify-center group-active:bg-slate-600">
+               <i className="fas fa-arrow-up text-3xl sm:text-4xl text-white drop-shadow-md"></i>
             </div>
         </button>
 
         {/* Trick Buttons */}
-        <div className="flex gap-4">
-            <button onTouchStart={(e) => { e.preventDefault(); onTrick('kickflip'); }} className="flex flex-col items-center gap-1 group">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 border-b-4 border-blue-900 shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center">
-                    <i className="fas fa-undo text-2xl text-white drop-shadow"></i>
+        <div className="flex gap-2 sm:gap-4">
+            <button 
+                onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('kickflip'); }} 
+                onTouchEnd={(e) => { e.preventDefault(); }}
+                className="flex flex-col items-center gap-1 group touch-manipulation"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 border-b-3 sm:border-b-4 border-blue-900 shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center">
+                    <i className="fas fa-undo text-xl sm:text-2xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-xs font-bold text-blue-300 drop-shadow-md tracking-wider">FLIP</span>
+                <span className="text-[10px] sm:text-xs font-bold text-blue-300 drop-shadow-md tracking-wider">FLIP</span>
             </button>
             
-            <button onTouchStart={(e) => { e.preventDefault(); onTrick('superman'); }} className="flex flex-col items-center gap-1 group">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-b from-red-500 to-red-700 border-b-4 border-red-900 shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center">
-                    <i className="fas fa-plane text-2xl text-white drop-shadow"></i>
+            <button 
+                onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('superman'); }} 
+                onTouchEnd={(e) => { e.preventDefault(); }}
+                className="flex flex-col items-center gap-1 group touch-manipulation"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-b from-red-500 to-red-700 border-b-3 sm:border-b-4 border-red-900 shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center">
+                    <i className="fas fa-plane text-xl sm:text-2xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-xs font-bold text-red-300 drop-shadow-md tracking-wider">SUPER</span>
+                <span className="text-[10px] sm:text-xs font-bold text-red-300 drop-shadow-md tracking-wider">SUPER</span>
             </button>
             
-            <button onTouchStart={(e) => { e.preventDefault(); onTrick('360'); }} className="flex flex-col items-center gap-1 group">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-b from-amber-500 to-amber-700 border-b-4 border-amber-900 shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center">
-                    <i className="fas fa-sync text-2xl text-white drop-shadow"></i>
+            <button 
+                onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('360'); }} 
+                onTouchEnd={(e) => { e.preventDefault(); }}
+                className="flex flex-col items-center gap-1 group touch-manipulation"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-b from-amber-500 to-amber-700 border-b-3 sm:border-b-4 border-amber-900 shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center">
+                    <i className="fas fa-sync text-xl sm:text-2xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-xs font-bold text-amber-300 drop-shadow-md tracking-wider">360</span>
+                <span className="text-[10px] sm:text-xs font-bold text-amber-300 drop-shadow-md tracking-wider">360</span>
             </button>
         </div>
       </div>

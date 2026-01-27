@@ -2,7 +2,12 @@
 <html lang="he" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="screen-orientation" content="landscape" />
+    <meta name="orientation" content="landscape" />
     <title>הסקייטר הצדיק Pro</title>
     <meta name="description" content="משחק סקייטבורד ברמה הגבוהה ביותר" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,6 +21,67 @@
         touch-action: none; /* Prevent scroll on mobile */
         margin: 0;
         padding: 0;
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+      }
+      
+      /* Force landscape orientation on mobile */
+      @media screen and (orientation: portrait) and (max-width: 768px) {
+        body::before {
+          content: 'אנא הטה את הטלפון לרוחב (landscape) כדי לשחק';
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: #0f172a;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          text-align: center;
+          padding: 20px;
+          z-index: 9999;
+          font-weight: bold;
+        }
+      }
+      
+      /* Prevent zoom on double tap */
+      * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+      
+      /* Mobile landscape optimizations */
+      @media screen and (max-width: 1024px) and (orientation: landscape) {
+        html, body {
+          height: 100vh;
+          height: -webkit-fill-available;
+          overflow: hidden;
+        }
+        
+        #root {
+          height: 100vh;
+          height: -webkit-fill-available;
+        }
+      }
+      
+      /* Prevent text selection on mobile */
+      * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      
+      /* Allow text selection in input fields */
+      input, textarea {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
       }
       /* Custom Scrollbar */
       ::-webkit-scrollbar { width: 8px; }
@@ -39,5 +105,42 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    <script>
+      // Prevent zoom on double tap
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', function (event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, false);
+
+      // Lock orientation to landscape on mobile
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(function(err) {
+          console.log('Orientation lock failed: ', err);
+        });
+      } else if (screen.lockOrientation) {
+        screen.lockOrientation('landscape');
+      } else if (screen.mozLockOrientation) {
+        screen.mozLockOrientation('landscape');
+      } else if (screen.msLockOrientation) {
+        screen.msLockOrientation('landscape');
+      }
+
+      // Prevent default touch behaviors
+      document.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      document.addEventListener('touchmove', function(e) {
+        if (e.scale !== 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    </script>
   </body>
 </html>

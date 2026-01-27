@@ -932,6 +932,13 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         width={CANVAS_WIDTH} 
         height={CANVAS_HEIGHT}
         className="w-full h-full object-contain bg-slate-900 shadow-2xl"
+        style={{
+          imageRendering: 'pixelated',
+          touchAction: 'none',
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
+          userSelect: 'none'
+        }}
     />
   );
 });

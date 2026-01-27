@@ -6,6 +6,7 @@ import HUD from './components/HUD';
 import GameOver from './components/GameOver';
 import Leaderboard from './components/Leaderboard';
 import PauseMenu from './components/PauseMenu';
+import OrientationCheck from './components/OrientationCheck';
 import { GameState, CharacterConfig, PowerUpType, PowerUpState, GadgetType } from './types';
 import { CHARACTERS } from './constants';
 import { audioService } from './services/audioService';
@@ -126,7 +127,15 @@ const App: React.FC = () => {
 
   return (
     <div className="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden">
-      <div className="relative w-full max-w-[1600px] aspect-video shadow-2xl overflow-hidden bg-slate-800">
+      <OrientationCheck />
+      <div className="relative w-full h-full max-w-[1600px] max-h-[900px] shadow-2xl overflow-hidden bg-slate-800" 
+           style={{ 
+             aspectRatio: '16/9',
+             width: '100%',
+             height: '100%',
+             maxWidth: '100vw',
+             maxHeight: '100vh'
+           }}>
         
         <GameEngine
             ref={gameRef}
