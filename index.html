@@ -60,11 +60,34 @@
           height: 100vh;
           height: -webkit-fill-available;
           overflow: hidden;
+          position: fixed;
+          width: 100%;
         }
         
         #root {
           height: 100vh;
           height: -webkit-fill-available;
+          width: 100%;
+          position: fixed;
+          top: 0;
+          left: 0;
+        }
+      }
+      
+      /* Ensure full viewport on mobile */
+      @media screen and (max-width: 768px) {
+        html, body {
+          height: 100%;
+          height: -webkit-fill-available;
+          overflow: hidden;
+          position: fixed;
+          width: 100%;
+        }
+        
+        #root {
+          height: 100%;
+          height: -webkit-fill-available;
+          width: 100%;
         }
       }
       

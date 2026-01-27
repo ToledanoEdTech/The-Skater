@@ -19,6 +19,7 @@ export interface CharacterConfig {
   pants: string;
   type: 'kippah' | 'hat';
   beard?: boolean;
+  uniqueFeature?: 'glasses' | 'cap' | 'long_hair' | 'curly_hair' | 'bald' | 'mustache';
 }
 
 export interface Particle {
@@ -44,7 +45,7 @@ export interface FloatingText {
 
 export interface Obstacle {
   id: number;
-  type: 'bench' | 'bush' | 'dog' | 'cat' | 'ramp-kicker' | 'ramp-quarter' | 'ramp-vert' | 'rail';
+  type: 'bench' | 'bush' | 'dog' | 'cat' | 'ramp-kicker' | 'ramp-quarter' | 'ramp-vert' | 'rail' | 'fire-hydrant' | 'bench-1' | 'bench-2' | 'trash-can';
   x: number;
   y: number;
   w: number;
@@ -94,4 +95,37 @@ export interface PlayerState {
     flashCounter: number;
     crashed: boolean;
     crashTimer: number;
+}
+
+export type MissionType = 'collect_coins' | 'trick_combo' | 'crash_distance' | 'grind_distance' | 'survive_time';
+export interface Mission {
+    id: string;
+    type: MissionType;
+    description: string;
+    target: number;
+    progress: number;
+    reward: number;
+    completed: boolean;
+}
+
+export type StageType = 'haredi_neighborhood' | 'tel_aviv_promenade' | 'desert' | 'western_wall';
+export interface Stage {
+    type: StageType;
+    name: string;
+    distance: number; // Distance at which this stage starts
+    color: string;
+}
+
+export type BossType = 'police_car' | 'rival_skater';
+export interface Boss {
+    id: number;
+    type: BossType;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    speed: number;
+    health: number;
+    markedForDeletion: boolean;
+    animFrame: number;
 }

@@ -27,12 +27,12 @@ const GameOver: React.FC<GameOverProps> = ({ score, coins, onRestart, onHome }) 
   };
 
   return (
-    <div className="absolute inset-0 bg-red-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 z-40">
-      <h2 className="text-6xl font-black text-white mb-6 -rotate-2 drop-shadow-xl">נפסלת צדיק!</h2>
+    <div className="absolute inset-0 bg-red-900/90 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-6 z-40 overflow-y-auto">
+      <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white mb-3 sm:mb-6 -rotate-2 drop-shadow-xl">נפסלת צדיק!</h2>
       
-      <div className="bg-slate-900/80 p-8 rounded-2xl shadow-2xl border border-red-500/30 text-center w-full max-w-md">
-        <div className="text-slate-400 text-sm font-bold uppercase tracking-wider mb-2">ניקוד סופי</div>
-        <div className="text-6xl font-black text-amber-400 mb-4">{score}</div>
+      <div className="bg-slate-900/80 p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl shadow-2xl border border-red-500/30 text-center w-full max-w-md">
+        <div className="text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2">ניקוד סופי</div>
+        <div className="text-4xl sm:text-5xl md:text-6xl font-black text-amber-400 mb-3 sm:mb-4">{score}</div>
         
         <div className="flex justify-center items-center gap-2 text-amber-500 font-bold text-xl mb-8">
             <span>+</span><span>{coins}</span><span>₪</span>

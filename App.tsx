@@ -7,7 +7,7 @@ import GameOver from './components/GameOver';
 import Leaderboard from './components/Leaderboard';
 import PauseMenu from './components/PauseMenu';
 import OrientationCheck from './components/OrientationCheck';
-import { GameState, CharacterConfig, PowerUpType, PowerUpState, GadgetType } from './types';
+import { GameState, CharacterConfig, PowerUpType, PowerUpState, GadgetType, Mission } from './types';
 import { CHARACTERS } from './constants';
 import { audioService } from './services/audioService';
 
@@ -33,6 +33,8 @@ const App: React.FC = () => {
   const [score, setScore] = useState(0);
   const [sessionCoins, setSessionCoins] = useState(0);
   const [combo, setCombo] = useState(1);
+  const [missions, setMissions] = useState<Mission[]>([]);
+  const [currentStage, setCurrentStage] = useState<string>('');
   
   const [activePowerups, setActivePowerups] = useState<PowerUpState>({
     shield: false, magnet: false, double: false, slow: false
@@ -47,10 +49,17 @@ const App: React.FC = () => {
 
   // Audio State Management
   useEffect(() => {
-      if (gameState === GameState.PAUSED) {
+      if (gameState === GameState.MENU) {
+          audioService.stopMusic();
+          audioService.startMenuMusic();
+      } else if (gameState === GameState.PAUSED) {
           audioService.pauseMusic();
+          audioService.stopMenuMusic();
       } else if (gameState === GameState.PLAYING) {
+          audioService.stopMenuMusic();
           audioService.resumeMusic();
+      } else {
+          audioService.stopMenuMusic();
       }
   }, [gameState]);
 
@@ -126,15 +135,13 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden">
+    <div className="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden" style={{ width: '100vw', height: '100vh' }}>
       <OrientationCheck />
-      <div className="relative w-full h-full max-w-[1600px] max-h-[900px] shadow-2xl overflow-hidden bg-slate-800" 
-           style={{ 
-             aspectRatio: '16/9',
+      <div className="relative w-full h-full shadow-2xl overflow-hidden bg-slate-800"
+           style={{
              width: '100%',
              height: '100%',
-             maxWidth: '100vw',
-             maxHeight: '100vh'
+             position: 'relative'
            }}>
         
         <GameEngine
@@ -148,6 +155,9 @@ const App: React.FC = () => {
             onScoreUpdate={(s, c, cm) => { setScore(s); setSessionCoins(c); setCombo(cm); }}
             onGameOver={handleGameOver}
             onPowerupExpire={(type) => setActivePowerups(prev => ({ ...prev, [type]: false }))}
+            onMissionUpdate={setMissions}
+            onStageChange={setCurrentStage}
+            onReward={(amount) => setWallet(prev => prev + amount)}
         />
         
         {/* Overlay Layers */}
@@ -184,8 +194,11 @@ const App: React.FC = () => {
                 combo={combo}
                 highScore={highScore}
                 powerups={activePowerups}
+                missions={missions}
+                currentStage={currentStage}
                 onJump={() => gameRef.current?.jump()}
                 onTrick={(t) => gameRef.current?.performTrick(t)}
+                onSlide={() => gameRef.current?.slide()}
             />
         )}
 
@@ -207,6 +220,19 @@ const App: React.FC = () => {
                 onHome={() => setGameState(GameState.MENU)}
             />
         )}
+
+        {/* Logo - Bottom Right (visible in all states) */}
+        <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 pointer-events-none z-20">
+          <img 
+            src="/logo.png" 
+            alt="Logo" 
+            className="h-12 sm:h-16 md:h-20 opacity-70 hover:opacity-100 transition-opacity drop-shadow-2xl"
+            onError={(e) => {
+              // Hide logo if image doesn't exist
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        </div>
         
         <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhYWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==')]"></div>
       </div>
