@@ -72,12 +72,12 @@ class AudioService {
   playTrick() { if(this.ready) this.jumpSynth?.triggerAttackRelease(["E5", "G5"], "16n"); }
   playSuperTrick() { if(this.ready) this.jumpSynth?.triggerAttackRelease(["G5", "C6"], "16n"); }
   playCoin() { if(this.ready) this.coinSynth?.triggerAttackRelease(["C6", "E6"], "32n"); }
-  playCrash() { if(this.ready) this.crashSynth?.triggerAttackRelease("8n"); }
-  playPowerup() { if(this.ready) this.powerupSynth?.triggerAttackRelease("32n"); }
+  playCrash() { if(this.ready) this.crashSynth?.triggerAttackRelease("8n", "+0"); }
+  playPowerup() { if(this.ready) this.powerupSynth?.triggerAttackRelease("32n", "+0"); }
   playBuy() { if(this.ready) this.coinSynth?.triggerAttackRelease(["E6", "G6", "C7"], "16n"); }
   
   playGrind() {
-      if(this.ready) this.grindSynth?.triggerAttackRelease("32n");
+      if(this.ready) this.grindSynth?.triggerAttackRelease("32n", "+0");
   }
 }
 

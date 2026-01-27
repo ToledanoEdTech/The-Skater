@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { 
-  CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, GRAVITY, JUMP_FORCE, BASE_SPEED, MAX_SPEED 
+  CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, GRAVITY, JUMP_FORCE, BASE_SPEED 
 } from '../constants';
 import { 
   CharacterConfig, Obstacle, Coin, Particle, FloatingText, PowerUpState, TrickType, PlayerState, GadgetType
@@ -167,7 +167,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     ctx.fill();
   };
 
-  const drawShadow = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, distFromGround: number) => {
+  const drawShadow = (ctx: CanvasRenderingContext2D, x: number, w: number, distFromGround: number) => {
       ctx.save();
       ctx.translate(x + w/2, GROUND_Y);
       const scale = Math.max(0.5, 1 - distFromGround / 400);
@@ -200,7 +200,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
   const drawPlayer = (ctx: CanvasRenderingContext2D, p: PlayerState) => {
     if (p.flashCounter > 0 && Math.floor(p.flashCounter / 4) % 2 === 0) return;
 
-    if (!p.crashed) drawShadow(ctx, p.x, p.y + p.height, p.width, GROUND_Y - (p.y + p.height));
+    if (!p.crashed) drawShadow(ctx, p.x, p.width, GROUND_Y - (p.y + p.height));
 
     ctx.save();
     ctx.translate(p.x + p.width / 2, p.y + p.height / 2);
@@ -392,7 +392,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
   };
 
   const drawDetailedDog = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, frame: number) => {
-    drawShadow(ctx, x, y+h, w, 0);
+    drawShadow(ctx, x, w, 0);
     ctx.save();
     ctx.translate(x + w/2, y + h/2);
     const runCycle = (frame * 0.2) % (Math.PI * 2);
@@ -422,8 +422,8 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     ctx.restore();
   };
   
-  const drawDetailedCat = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, frame: number) => {
-      drawShadow(ctx, x, y+h, w, 0);
+  const drawDetailedCat = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
+      drawShadow(ctx, x, w, 0);
       ctx.save(); ctx.translate(x + w/2, y + h/2); ctx.fillStyle = '#4b5563'; 
       ctx.beginPath(); ctx.moveTo(-20, 15); ctx.quadraticCurveTo(0, -20, 20, 15); ctx.lineTo(20, 25); ctx.lineTo(-20, 25); ctx.fill();
       ctx.translate(-15, 0); ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI*2); ctx.fill();
@@ -439,9 +439,6 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     // 4500+: Night
     let skyStart, skyEnd, sunMoonY, groundStart, groundEnd, starAlpha, streetLightAlpha;
     
-    // Calculate phase
-    // Let's cycle it: 6000 frames per full cycle? Or just progress to night and stay?
-    // User: "make it day, allow to turn into night after riding for a long time"
     const cyclePos = Math.min(frame, 6000); 
     let phase = 0; // 0=Day, 1=Sunset, 2=Night
     let t = 0;
@@ -807,9 +804,9 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
            if (obs.type === 'dog') {
                drawDetailedDog(ctx, obs.x, obs.y, obs.w, obs.h, obs.animFrame);
            } else if (obs.type === 'cat') {
-               drawDetailedCat(ctx, obs.x, obs.y, obs.w, obs.h, obs.animFrame);
+               drawDetailedCat(ctx, obs.x, obs.y, obs.w, obs.h);
            } else {
-               drawShadow(ctx, obs.x, obs.y + obs.h, obs.w, 0);
+               drawShadow(ctx, obs.x, obs.w, 0);
                
                if (obs.type === 'rail') {
                    ctx.fillStyle = '#64748b'; ctx.fillRect(obs.x + 20, obs.y + 15, 10, obs.h - 15); ctx.fillRect(obs.x + obs.w - 30, obs.y + 15, 10, obs.h - 15);
