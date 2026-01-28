@@ -6,7 +6,7 @@ export class BossService {
         const boss: Boss = {
             id: Date.now() + Math.random(),
             type,
-            x: type === 'police_car' ? -250 : CANVAS_WIDTH + 100, // Police car starts from left side
+            x: type === 'police_car' ? CANVAS_WIDTH + 100 : CANVAS_WIDTH + 100, // Police car starts from right side (opposite direction)
             y: type === 'police_car' ? GROUND_Y - 80 : GROUND_Y - 120,
             w: type === 'police_car' ? 200 : 100,
             h: type === 'police_car' ? 80 : 120,
@@ -28,11 +28,10 @@ export class BossService {
         
         // Boss moves towards player
         if (boss.type === 'police_car') {
-            // Police car moves in opposite direction (to the right, away from skater)
-            // Keep moving right until it disappears off screen
-            boss.x += playerSpeed * 0.8; // Moves right at a good speed
-            // Remove if off screen to the right
-            if (boss.x > CANVAS_WIDTH + 100) {
+            // Police car comes from the right side and moves left (towards player, against player's direction)
+            boss.x -= playerSpeed * 1.2; // Moves left towards player at faster speed
+            // Remove if off screen to the left
+            if (boss.x + boss.w < -100) {
                 boss.markedForDeletion = true;
             }
         } else if (boss.type === 'rival_skater') {

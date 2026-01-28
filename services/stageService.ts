@@ -3,25 +3,25 @@ import { Stage } from '../types';
 export const STAGES: Stage[] = [
     {
         type: 'haredi_neighborhood',
-        name: 'שכונה חרדית',
+        name: 'משכנות שאננים',
         distance: 0,
         color: '#4a5568'
     },
     {
         type: 'tel_aviv_promenade',
-        name: 'טיילת תל אביב',
+        name: 'הרובע היהודי',
         distance: 1000,
         color: '#0ea5e9'
     },
     {
         type: 'desert',
-        name: 'המדבר',
+        name: 'נחלת שבעה',
         distance: 2000,
         color: '#d97706'
     },
     {
         type: 'western_wall',
-        name: 'הכותל',
+        name: 'מאה שערים',
         distance: 3000,
         color: '#7c3aed'
     }

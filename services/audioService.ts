@@ -93,8 +93,12 @@ class AudioService {
 
   startMusic() {
     if (this.ready) {
+      // Never allow menu music to overlap with gameplay music
+      this.stopMenuMusic();
+
       // Try to use game music file first, fallback to Tone.js generated music
       if (this.gameMusic) {
+        this.gameMusic.currentTime = 0;
         this.gameMusic.play().catch(() => {
           console.log('Game music file not found, using generated music');
           // Fallback to generated music
@@ -133,16 +137,29 @@ class AudioService {
   resumeMusic() {
     if (this.ready) {
       if (this.gameMusic) {
-        this.gameMusic.play().catch(() => console.log('Could not resume game music'));
+        this.gameMusic.play().catch(() => {
+          console.log('Could not resume game music');
+          // Fallback to generated music
+          if (this.bgmLoop) {
+            if (Tone.Transport.state !== 'started') Tone.Transport.start();
+            this.bgmLoop.start(0);
+          }
+        });
+      } else if (this.bgmLoop) {
+        Tone.Transport.start();
+        this.bgmLoop.start(0);
       }
-      Tone.Transport.start();
     }
   }
   
   startMenuMusic() {
-    if (this.menuMusic) {
-      this.menuMusic.play().catch(() => {
-        console.log('Menu music file not found');
+    if (this.ready && this.menuMusic) {
+      // Never allow gameplay music to overlap with menu music
+      this.stopMusic();
+
+      this.menuMusic.currentTime = 0;
+      this.menuMusic.play().catch((err) => {
+        console.log('Menu music play failed:', err);
       });
     }
   }

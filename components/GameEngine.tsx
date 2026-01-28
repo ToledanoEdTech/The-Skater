@@ -39,6 +39,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
   const reqRef = useRef<number>();
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
   const obstacleImagesRef = useRef<Record<string, HTMLImageElement>>({});
+  const characterFaceImagesRef = useRef<Record<string, HTMLImageElement>>({});
   
   // Mutable Game State
   const gameState = useRef({
@@ -869,102 +870,114 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         ctx.restore();
     }
     
-    // Face features (תווי פנים) - Menu style (clean and simple)
+    // Face features (תווי פנים) - Use image if available, otherwise draw
     if (!p.crashed && character.id !== 'rabbi') {
-        // Face shading for depth (like menu)
-        ctx.fillStyle = 'rgba(0,0,0,0.1)';
-        ctx.beginPath();
-        ctx.ellipse(-12, -8, 8, 12, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(12, -8, 8, 12, 0, 0, Math.PI * 2);
-        ctx.fill();
+        // Check if we have a face image for this character
+        const faceImageKey = `${character.id}-face`;
+        const faceImage = characterFaceImagesRef.current[faceImageKey];
         
-        // Forehead highlight
-        ctx.fillStyle = 'rgba(255,255,255,0.2)';
-        ctx.beginPath();
-        ctx.ellipse(0, -18, 10, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Eyes - Menu style (clean)
-        const eyeY = -12;
-        const eyeSpacing = 5;
-        
-        // Eye whites
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.ellipse(-eyeSpacing, eyeY, 3.5, 2.8, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(eyeSpacing, eyeY, 3.5, 2.8, 0, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Iris
-        ctx.fillStyle = '#2c1810';
-        ctx.beginPath();
-        ctx.arc(-eyeSpacing, eyeY, 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(eyeSpacing, eyeY, 2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Pupil
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(-eyeSpacing, eyeY, 1.2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(eyeSpacing, eyeY, 1.2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Eye highlights
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(-eyeSpacing - 0.8, eyeY - 0.8, 0.8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(eyeSpacing - 0.8, eyeY - 0.8, 0.8, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Eyebrows
-        const browColor = character.hair === '#ecf0f1' || character.hair === '#ffffff' ? '#8b8b8b' : character.hair;
-        ctx.strokeStyle = browColor;
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(-9, -16);
-        ctx.quadraticCurveTo(-5, -17, -1, -16);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(1, -16);
-        ctx.quadraticCurveTo(5, -17, 9, -16);
-        ctx.stroke();
-        
-        // Nose
-        ctx.fillStyle = 'rgba(0,0,0,0.15)';
-        ctx.beginPath();
-        ctx.ellipse(0, -5, 1.5, 2, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(-1.5, -10);
-        ctx.quadraticCurveTo(0, -6, 1.5, -10);
-        ctx.stroke();
-        
-        // Mouth
-        if (!character.beard && character.uniqueFeature !== 'mustache') {
-            ctx.strokeStyle = 'rgba(139,69,19,0.6)';
-            ctx.lineWidth = 2.5;
+        if (faceImage && faceImage.complete && faceImage.naturalWidth > 0) {
+            // Draw face image instead of drawing features
+            // Scale the image to fit the head (radius 16, so diameter 32)
+            const faceSize = 32;
+            ctx.drawImage(faceImage, -faceSize/2, -24, faceSize, faceSize);
+        } else {
+            // Fallback: Draw face features (Menu style - clean and simple)
+            // Face shading for depth (like menu)
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            ctx.beginPath();
+            ctx.ellipse(-12, -8, 8, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(12, -8, 8, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Forehead highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.beginPath();
+            ctx.ellipse(0, -18, 10, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Eyes - Menu style (clean)
+            const eyeY = -12;
+            const eyeSpacing = 5;
+            
+            // Eye whites
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(-eyeSpacing, eyeY, 3.5, 2.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(eyeSpacing, eyeY, 3.5, 2.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Iris
+            ctx.fillStyle = '#2c1810';
+            ctx.beginPath();
+            ctx.arc(-eyeSpacing, eyeY, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(eyeSpacing, eyeY, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Pupil
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(-eyeSpacing, eyeY, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(eyeSpacing, eyeY, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Eye highlights
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(-eyeSpacing - 0.8, eyeY - 0.8, 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(eyeSpacing - 0.8, eyeY - 0.8, 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Eyebrows
+            const browColor = character.hair === '#ecf0f1' || character.hair === '#ffffff' ? '#8b8b8b' : character.hair;
+            ctx.strokeStyle = browColor;
+            ctx.lineWidth = 3;
             ctx.lineCap = 'round';
             ctx.beginPath();
-            ctx.moveTo(-4, -2);
-            ctx.quadraticCurveTo(0, 0, 4, -2);
+            ctx.moveTo(-9, -16);
+            ctx.quadraticCurveTo(-5, -17, -1, -16);
             ctx.stroke();
-            ctx.fillStyle = 'rgba(139,69,19,0.3)';
             ctx.beginPath();
-            ctx.ellipse(0, -1.5, 4, 1.5, 0, 0, Math.PI * 2);
+            ctx.moveTo(1, -16);
+            ctx.quadraticCurveTo(5, -17, 9, -16);
+            ctx.stroke();
+            
+            // Nose
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.beginPath();
+            ctx.ellipse(0, -5, 1.5, 2, 0, 0, Math.PI * 2);
             ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-1.5, -10);
+            ctx.quadraticCurveTo(0, -6, 1.5, -10);
+            ctx.stroke();
+            
+            // Mouth
+            if (!character.beard && character.uniqueFeature !== 'mustache') {
+                ctx.strokeStyle = 'rgba(139,69,19,0.6)';
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(-4, -2);
+                ctx.quadraticCurveTo(0, 0, 4, -2);
+                ctx.stroke();
+                ctx.fillStyle = 'rgba(139,69,19,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(0, -1.5, 4, 1.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
         
     } else if (!p.crashed && character.id === 'rabbi') {
@@ -1906,7 +1919,13 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
               if (dist < 400) { c.x += dx * 0.15; c.y += dy * 0.15; }
           }
           const p = st.player;
-          if (Math.abs(p.x - c.x) < 50 && Math.abs(p.y - c.y) < 50) {
+          // More forgiving coin collection using radial distance (reduces "near-miss" cases)
+          const cx = p.x + p.width / 2;
+          const cy = p.y + p.height / 2;
+          const dx = cx - c.x;
+          const dy = cy - c.y;
+          const pickupRadius = 90; // was effectively ~70 via axis-aligned check
+          if ((dx * dx + dy * dy) <= (pickupRadius * pickupRadius)) {
               c.markedForDeletion = true;
               st.coins++;
               st.score += 100;
@@ -1971,7 +1990,8 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
           
           // Remove if off screen (different logic for police car)
           if (boss.type === 'police_car') {
-              if (boss.x > CANVAS_WIDTH + 100) {
+              // Police car comes from right, moves left, so check if off screen to the left
+              if (boss.x + boss.w < -100) {
                   boss.markedForDeletion = true;
               }
           } else {
@@ -1992,6 +2012,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
               // Draw improved police car
               ctx.save();
               ctx.translate(boss.x + boss.w / 2, boss.y + boss.h / 2);
+              // Do not mirror: mirrored text feels wrong and can make the car look like it's "chasing from behind".
               
               // Car body - more realistic shape
               const bodyGradient = ctx.createLinearGradient(-boss.w / 2, -boss.h / 2, -boss.w / 2, boss.h / 2);
@@ -2337,6 +2358,23 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
       // Try to load from public folder with naming convention: obstacle-{type}.png
       img.src = `/obstacle-${type}.png`;
     });
+  }, []);
+
+  // Load character face images
+  useEffect(() => {
+    // Load face image for nave (נוה עודד)
+    const faceImageKey = 'nave-face';
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      console.log(`Character face image loaded: ${faceImageKey}`);
+      characterFaceImagesRef.current[faceImageKey] = img;
+    };
+    img.onerror = () => {
+      console.log(`Character face image not found for ${faceImageKey}, using drawn face`);
+    };
+    // Try to load from public/faces folder
+    img.src = '/faces/character1-face.png';
   }, []);
 
   // Resize canvas to fit container while maintaining aspect ratio

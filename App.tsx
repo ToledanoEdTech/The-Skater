@@ -49,18 +49,33 @@ const App: React.FC = () => {
 
   // Audio State Management
   useEffect(() => {
-      if (gameState === GameState.MENU) {
-          audioService.stopMusic();
-          audioService.startMenuMusic();
-      } else if (gameState === GameState.PAUSED) {
-          audioService.pauseMusic();
-          audioService.stopMenuMusic();
-      } else if (gameState === GameState.PLAYING) {
-          audioService.stopMenuMusic();
-          audioService.resumeMusic();
-      } else {
-          audioService.stopMenuMusic();
-      }
+    // Init audio once. Keeping this separate prevents race conditions where an old
+    // async callback starts menu music after we already entered PLAYING.
+    audioService.init();
+  }, []);
+
+  useEffect(() => {
+    // Audio routing based on current UI state.
+    // AudioService itself also guards against overlap (menu/game) as a fallback.
+    if (gameState === GameState.MENU) {
+      audioService.startMenuMusic();
+      return;
+    }
+
+    if (gameState === GameState.PAUSED) {
+      audioService.pauseMusic();
+      audioService.stopMenuMusic();
+      return;
+    }
+
+    if (gameState === GameState.PLAYING) {
+      audioService.stopMenuMusic();
+      audioService.startMusic();
+      return;
+    }
+
+    // SHOP / LEADERBOARD / GAME_OVER: stop menu music, keep game music stopped/paused elsewhere.
+    audioService.stopMenuMusic();
   }, [gameState]);
 
   // Input Handling
@@ -95,15 +110,13 @@ const App: React.FC = () => {
   }, [gameState]);
 
   const startGame = (char: CharacterConfig) => {
-    audioService.init().then(() => {
-        audioService.startMusic();
-        setCharacter(char);
-        setScore(0);
-        setSessionCoins(0);
-        setCombo(1);
-        setSessionId(prev => prev + 1);
-        setGameState(GameState.PLAYING);
-    });
+    setCharacter(char);
+    setScore(0);
+    setSessionCoins(0);
+    setCombo(1);
+    setSessionId(prev => prev + 1);
+    setGameState(GameState.PLAYING);
+    // Audio will be handled by the useEffect hook
   };
 
   const buyPowerup = (type: PowerUpType, cost: number) => {
