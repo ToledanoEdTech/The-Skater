@@ -23,7 +23,7 @@ export class BossService {
         return distance - lastBossDistance >= 1500;
     }
 
-    updateBoss(boss: Boss, playerX: number, playerSpeed: number): void {
+    updateBoss(boss: Boss, _playerX: number, playerSpeed: number): void {
         boss.animFrame++;
         
         // Boss moves towards player

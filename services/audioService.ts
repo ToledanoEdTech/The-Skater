@@ -8,7 +8,6 @@ class AudioService {
   private powerupSynth: Tone.MetalSynth | null = null;
   private grindSynth: Tone.NoiseSynth | null = null;
   private bgmLoop: Tone.Loop | null = null;
-  private voiceLines: Map<string, HTMLAudioElement> = new Map();
   private menuMusic: HTMLAudioElement | null = null;
   private gameMusic: HTMLAudioElement | null = null;
 
@@ -96,7 +95,7 @@ class AudioService {
     if (this.ready) {
       // Try to use game music file first, fallback to Tone.js generated music
       if (this.gameMusic) {
-        this.gameMusic.play().catch(e => {
+        this.gameMusic.play().catch(() => {
           console.log('Game music file not found, using generated music');
           // Fallback to generated music
           if (this.bgmLoop) {
@@ -134,7 +133,7 @@ class AudioService {
   resumeMusic() {
     if (this.ready) {
       if (this.gameMusic) {
-        this.gameMusic.play().catch(e => console.log('Could not resume game music'));
+        this.gameMusic.play().catch(() => console.log('Could not resume game music'));
       }
       Tone.Transport.start();
     }
@@ -142,7 +141,7 @@ class AudioService {
   
   startMenuMusic() {
     if (this.menuMusic) {
-      this.menuMusic.play().catch(e => {
+      this.menuMusic.play().catch(() => {
         console.log('Menu music file not found');
       });
     }

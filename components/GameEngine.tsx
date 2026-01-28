@@ -451,19 +451,15 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     // Improved running animation - slower and more realistic
     const runCycle = gameState.current.frame * 0.2; // Slower animation (was 0.5)
     const runAnim = p.crashed ? 0 : (p.grounded && !p.grinding ? Math.sin(runCycle) : 0);
-    const runPhase = p.crashed ? 0 : (p.grounded && !p.grinding ? (Math.sin(runCycle) + 1) / 2 : 0.5);
     
     // Legs & Shoes - Positioned ON the skateboard (not under it)
     const drawLeg = (isBack: boolean) => {
         ctx.save();
         
-        // Skateboard is at Y=35-43 (height 8), so feet should be at Y=35-40
-        const skateboardTop = 35; // Top of skateboard
         const legBaseY = 12; // Start from torso (relative to center)
         const offset = isBack ? -10 : 10;
         
         // More realistic leg animation - smooth and natural
-        const legPhase = runAnim;
         const legCycle = runCycle + (isBack ? Math.PI : 0);
         
         // Thigh rotation - more pronounced and smooth
@@ -760,7 +756,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         // Fingers (אצבעות) - More realistic
         ctx.fillStyle = character.skin;
         const fingerPositions = [-3, -1, 1, 3];
-        fingerPositions.forEach((pos, i) => {
+        fingerPositions.forEach((pos) => {
             ctx.beginPath();
             ctx.arc(pos, -5, 1.8, 0, Math.PI * 2);
             ctx.fill();
@@ -1476,7 +1472,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     // 0 - 3000: Day -> Sunset
     // 3000 - 4500: Sunset -> Night
     // 4500+: Night
-    let skyStart, skyEnd, sunMoonY, groundStart, groundEnd, starAlpha, streetLightAlpha;
+    let skyStart, skyEnd, sunMoonY, starAlpha, streetLightAlpha;
     
     const cyclePos = Math.min(frame, 6000); 
     let phase = 0; // 0=Day, 1=Sunset, 2=Night
@@ -1488,8 +1484,6 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         t = cyclePos / 3000;
         skyStart = interpolateColor('#38bdf8', '#f97316', t); // Blue -> Orange
         skyEnd = interpolateColor('#0ea5e9', '#7c3aed', t); // Deep Blue -> Purple
-        groundStart = interpolateColor('#16a34a', '#111827', t);
-        groundEnd = interpolateColor('#15803d', '#000000', t);
         sunMoonY = 100 + t * 400; // Sun goes down
         starAlpha = 0;
         streetLightAlpha = t > 0.8 ? (t - 0.8) * 5 : 0;
@@ -1499,8 +1493,6 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         t = (cyclePos - 3000) / 2000;
         skyStart = interpolateColor('#f97316', '#020617', t);
         skyEnd = interpolateColor('#7c3aed', '#312e81', t);
-        groundStart = '#111827';
-        groundEnd = '#000000';
         sunMoonY = 500 + t * 200; // Sun gone
         starAlpha = t;
         streetLightAlpha = 1;
@@ -1509,8 +1501,6 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         phase = 2;
         skyStart = '#020617';
         skyEnd = '#312e81';
-        groundStart = '#111827';
-        groundEnd = '#000000';
         sunMoonY = 150; // Moon Up
         starAlpha = 1;
         streetLightAlpha = 1;
@@ -2321,7 +2311,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
       console.log('Background image loaded:', img.width, 'x', img.height);
       backgroundImageRef.current = img;
     };
-    img.onerror = (e) => {
+    img.onerror = () => {
       console.log('Background image failed to load, using programmatic background');
       // If image doesn't exist, continue with programmatic background
       backgroundImageRef.current = null;
