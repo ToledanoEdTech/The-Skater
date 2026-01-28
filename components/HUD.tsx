@@ -195,22 +195,22 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
         </div>
       )}
 
-      {/* Mobile Controls - Arcade Style - Much Larger for Mobile - ALWAYS VISIBLE ON MOBILE */}
+      {/* Mobile Controls - Compact and Small - ALWAYS VISIBLE ON MOBILE */}
       {(isMobile || window.innerWidth < 768) && (
       <div 
-        className="flex justify-between items-end mt-auto px-2 sm:px-3 md:px-4 pb-2 sm:pb-3 md:pb-4 gap-2 sm:gap-3 md:gap-4 relative" 
+        className="flex justify-between items-end mt-auto px-1 sm:px-2 md:px-3 pb-1 sm:pb-2 md:pb-3 gap-1 sm:gap-1.5 md:gap-2 relative" 
         style={{ 
           pointerEvents: 'auto',
           zIndex: 1000,
           position: 'absolute',
-          bottom: 0,
+          bottom: '5px',
           left: 0,
           right: 0,
           width: '100%',
           display: 'flex'
         }}
       >
-        {/* Jump Button - Smaller for Mobile */}
+        {/* Jump Button - Much Smaller for Mobile */}
         <button 
             onClick={(e) => { 
               e.preventDefault(); 
@@ -224,13 +224,13 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
             }}
             onTouchEnd={(e) => { e.preventDefault(); }}
             onMouseDown={(e) => { e.preventDefault(); }}
-            className="rounded-full bg-gradient-to-b from-emerald-500 to-green-600 border-b-4 sm:border-b-6 border-green-800 shadow-2xl active:border-b-0 active:translate-y-1 sm:active:translate-y-2 transition-all flex items-center justify-center group relative"
+            className="rounded-full bg-gradient-to-b from-emerald-500 to-green-600 border-b-3 sm:border-b-4 border-green-800 shadow-xl active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center group relative"
             style={{ 
               WebkitTapHighlightColor: 'transparent', 
-              width: '75px', 
-              height: '75px', 
-              minWidth: '75px', 
-              minHeight: '75px',
+              width: '60px', 
+              height: '60px', 
+              minWidth: '60px', 
+              minHeight: '60px',
               WebkitUserSelect: 'none',
               userSelect: 'none',
               cursor: 'pointer',
@@ -239,13 +239,13 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
               zIndex: 1001
             }}
         >
-            <div className="rounded-full bg-green-700 border-3 sm:border-4 border-green-900 flex items-center justify-center group-active:bg-green-600 transition-all" style={{ width: '68px', height: '68px' }}>
-               <i className="fas fa-arrow-up text-3xl sm:text-4xl text-white drop-shadow-md"></i>
+            <div className="rounded-full bg-green-700 border-2 sm:border-3 border-green-900 flex items-center justify-center group-active:bg-green-600 transition-all" style={{ width: '55px', height: '55px' }}>
+               <i className="fas fa-arrow-up text-2xl sm:text-3xl text-white drop-shadow-md"></i>
             </div>
         </button>
 
-        {/* Trick Buttons - Smaller for Mobile */}
-        <div className="flex gap-1.5 sm:gap-2 md:gap-3 relative" style={{ zIndex: 1001 }}>
+        {/* Trick Buttons - Much Smaller for Mobile */}
+        <div className="flex gap-1 sm:gap-1.5 md:gap-2 relative" style={{ zIndex: 1001 }}>
             <button 
                 onClick={(e) => { 
                   e.preventDefault(); 
@@ -259,7 +259,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                 }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
                 onMouseDown={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1 sm:gap-1.5 group relative"
+                className="flex flex-col items-center gap-0.5 sm:gap-1 group relative"
                 style={{ 
                   WebkitTapHighlightColor: 'transparent', 
                   WebkitUserSelect: 'none', 
@@ -270,10 +270,10 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                   zIndex: 1002
                 }}
             >
-                <div className="rounded-full bg-gradient-to-b from-blue-500 to-blue-700 border-b-4 sm:border-b-5 border-blue-900 shadow-xl active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center" style={{ width: '65px', height: '65px', minWidth: '65px', minHeight: '65px' }}>
-                    <i className="fas fa-undo text-2xl sm:text-3xl text-white drop-shadow"></i>
+                <div className="rounded-full bg-gradient-to-b from-blue-500 to-blue-700 border-b-3 sm:border-b-4 border-blue-900 shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center" style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}>
+                    <i className="fas fa-undo text-lg sm:text-xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-xs sm:text-sm font-bold text-blue-300 drop-shadow-md tracking-wider">FLIP</span>
+                <span className="text-[10px] sm:text-xs font-bold text-blue-300 drop-shadow-md tracking-wider">FLIP</span>
             </button>
             
             <button 
@@ -289,7 +289,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                 }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
                 onMouseDown={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1 sm:gap-1.5 group relative"
+                className="flex flex-col items-center gap-0.5 sm:gap-1 group relative"
                 style={{ 
                   WebkitTapHighlightColor: 'transparent', 
                   WebkitUserSelect: 'none', 
@@ -300,10 +300,10 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                   zIndex: 1002
                 }}
             >
-                <div className="rounded-full bg-gradient-to-b from-red-500 to-red-700 border-b-4 sm:border-b-5 border-red-900 shadow-xl active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center" style={{ width: '65px', height: '65px', minWidth: '65px', minHeight: '65px' }}>
-                    <i className="fas fa-plane text-2xl sm:text-3xl text-white drop-shadow"></i>
+                <div className="rounded-full bg-gradient-to-b from-red-500 to-red-700 border-b-3 sm:border-b-4 border-red-900 shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center" style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}>
+                    <i className="fas fa-plane text-lg sm:text-xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-xs sm:text-sm font-bold text-red-300 drop-shadow-md tracking-wider">SUPER</span>
+                <span className="text-[10px] sm:text-xs font-bold text-red-300 drop-shadow-md tracking-wider">SUPER</span>
             </button>
             
             <button 
@@ -319,7 +319,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                 }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
                 onMouseDown={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1 sm:gap-1.5 group relative"
+                className="flex flex-col items-center gap-0.5 sm:gap-1 group relative"
                 style={{ 
                   WebkitTapHighlightColor: 'transparent', 
                   WebkitUserSelect: 'none', 
@@ -330,10 +330,10 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                   zIndex: 1002
                 }}
             >
-                <div className="rounded-full bg-gradient-to-b from-amber-500 to-amber-700 border-b-4 sm:border-b-5 border-amber-900 shadow-xl active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center" style={{ width: '65px', height: '65px', minWidth: '65px', minHeight: '65px' }}>
-                    <i className="fas fa-sync text-2xl sm:text-3xl text-white drop-shadow"></i>
+                <div className="rounded-full bg-gradient-to-b from-amber-500 to-amber-700 border-b-3 sm:border-b-4 border-amber-900 shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center" style={{ width: '50px', height: '50px', minWidth: '50px', minHeight: '50px' }}>
+                    <i className="fas fa-sync text-lg sm:text-xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-xs sm:text-sm font-bold text-amber-300 drop-shadow-md tracking-wider">360</span>
+                <span className="text-[10px] sm:text-xs font-bold text-amber-300 drop-shadow-md tracking-wider">360</span>
             </button>
         </div>
       </div>
@@ -349,18 +349,6 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
          </div>
       </div>
 
-      {/* Logo - Bottom Right - Hidden on mobile to save space */}
-      <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 pointer-events-none hidden sm:block">
-        <img 
-          src="/logo.png" 
-          alt="Logo" 
-          className="h-12 sm:h-16 md:h-20 opacity-80 hover:opacity-100 transition-opacity drop-shadow-lg"
-          onError={(e) => {
-            // Hide logo if image doesn't exist
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
-        />
-      </div>
     </div>
   );
 };

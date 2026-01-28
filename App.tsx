@@ -254,18 +254,6 @@ const App: React.FC = () => {
             />
         )}
 
-        {/* Logo - Bottom Right (visible in all states) */}
-        <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 pointer-events-none z-20">
-          <img 
-            src="/logo.png" 
-            alt="Logo" 
-            className="h-12 sm:h-16 md:h-20 opacity-70 hover:opacity-100 transition-opacity drop-shadow-2xl"
-            onError={(e) => {
-              // Hide logo if image doesn't exist
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        </div>
         
         <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhYWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==')]"></div>
       </div>

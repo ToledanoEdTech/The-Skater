@@ -18,7 +18,7 @@
         font-family: 'Rubik', sans-serif;
         background-color: #0f172a;
         overflow: hidden;
-        touch-action: pan-x pan-y; /* Allow touch but prevent pinch zoom */
+        touch-action: pan-x pan-y pinch-zoom; /* Allow touch scrolling and pinch zoom */
         margin: 0;
         padding: 0;
         width: 100vw;
@@ -145,6 +145,14 @@
         .overflow-y-auto {
           -webkit-overflow-scrolling: touch;
           overscroll-behavior: contain;
+          touch-action: pan-y;
+          overflow-y: scroll !important;
+        }
+        
+        /* Ensure scrollable containers work */
+        [style*="overflow-y-auto"] {
+          touch-action: pan-y;
+          -webkit-overflow-scrolling: touch;
         }
       }
     </style>

@@ -32,7 +32,7 @@ const Shop: React.FC<ShopProps> = ({
   const [activeTab, setActiveTab] = useState<'powerups' | 'gadgets'>('powerups');
 
   return (
-    <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 backdrop-blur-xl flex flex-col items-center justify-center p-2 sm:p-3 md:p-4 lg:p-6 z-30 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+    <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 backdrop-blur-xl flex flex-col items-center justify-center p-1 sm:p-2 md:p-3 lg:p-4 z-30 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}>
       {/* Animated background pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{

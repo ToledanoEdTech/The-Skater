@@ -27,7 +27,7 @@ const GameOver: React.FC<GameOverProps> = ({ score, coins, onRestart, onHome }) 
   };
 
   return (
-    <div className="absolute inset-0 bg-red-900/90 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8 z-40 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+    <div className="absolute inset-0 bg-red-900/90 backdrop-blur-md flex flex-col items-center justify-center p-1 sm:p-2 md:p-3 lg:p-4 z-40 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}>
       <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-2 sm:mb-3 md:mb-4 -rotate-2 drop-shadow-xl text-center px-2">נפסלת צדיק!</h2>
       
       <div className="bg-slate-900/80 p-3 sm:p-4 md:p-6 lg:p-8 rounded-lg sm:rounded-xl md:rounded-2xl shadow-2xl border-2 border-red-500/30 text-center w-full max-w-md sm:max-w-lg md:max-w-xl mx-2">
