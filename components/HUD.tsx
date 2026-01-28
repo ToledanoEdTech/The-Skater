@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { PowerUpState, Mission } from '../types';
 import { gestureService } from '../services/gestureService';
 
@@ -17,6 +17,24 @@ interface HUDProps {
 
 const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, missions = [], currentStage, onJump, onTrick, onSlide }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobileDevice = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobile(isMobileDevice);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
+  }, []);
 
   // Gesture handling for mobile - Tap to jump (backup handler)
   useEffect(() => {
@@ -60,11 +78,12 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
   }, [onJump, onTrick, onSlide]);
 
   return (
-    <div ref={canvasRef} className="absolute inset-0 pointer-events-none p-2 sm:p-3 md:p-4 lg:p-8 flex flex-col justify-between z-10">
+    <div ref={canvasRef} className="absolute inset-0 p-2 sm:p-3 md:p-4 lg:p-8 flex flex-col justify-between z-10" style={{ pointerEvents: 'none' }}>
       {/* Mobile Tap Area for Jump - Large invisible area in center (only on mobile) */}
       {/* This allows tapping anywhere on screen to jump, except on buttons and UI elements */}
+      {(isMobile || window.innerWidth < 768) && (
       <div 
-        className="md:hidden absolute pointer-events-auto"
+        className="absolute pointer-events-auto"
         style={{ 
           top: '10%', 
           bottom: '35%', 
@@ -72,15 +91,16 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
           right: '0%',
           touchAction: 'manipulation',
           WebkitTapHighlightColor: 'transparent',
-          zIndex: 1
+          zIndex: 5,
+          display: 'block'
         }}
         onTouchStart={(e) => {
           // Don't trigger if touching a button or UI element
           const target = e.target as HTMLElement;
           const isButton = target.closest('button');
-          const isUI = target.closest('.bg-slate-900') || target.closest('.bg-gradient-to-br') || target.closest('.bg-gradient-to-b');
+          const isUI = target.closest('.bg-slate-900') || target.closest('.bg-gradient-to-br') || target.closest('.bg-gradient-to-b') || target.closest('.bg-slate-800');
           
-          if (!isButton && !isUI) {
+          if (!isButton && !isUI && target === e.currentTarget) {
             e.preventDefault();
             e.stopPropagation();
             onJump();
@@ -89,18 +109,19 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
         onClick={(e) => {
           const target = e.target as HTMLElement;
           const isButton = target.closest('button');
-          const isUI = target.closest('.bg-slate-900') || target.closest('.bg-gradient-to-br') || target.closest('.bg-gradient-to-b');
+          const isUI = target.closest('.bg-slate-900') || target.closest('.bg-gradient-to-br') || target.closest('.bg-gradient-to-b') || target.closest('.bg-slate-800');
           
-          if (!isButton && !isUI) {
+          if (!isButton && !isUI && target === e.currentTarget) {
             e.preventDefault();
             e.stopPropagation();
             onJump();
           }
         }}
       />
+      )}
       
       {/* Top Bar */}
-      <div className="flex justify-between items-start flex-wrap gap-2 sm:gap-3">
+      <div className="flex justify-between items-start flex-wrap gap-2 sm:gap-3 pointer-events-none">
         <div className="flex flex-col gap-1.5 sm:gap-2">
             <div className="bg-slate-900/70 backdrop-blur-md px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl border-l-4 border-amber-500 shadow-xl">
                 <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-widest tabular-nums">
@@ -174,11 +195,28 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
         </div>
       )}
 
-      {/* Mobile Controls - Arcade Style - Much Larger for Mobile */}
-      <div className="pointer-events-auto md:hidden flex justify-between items-end mt-auto px-2 sm:px-3 md:px-4 pb-2 sm:pb-3 md:pb-4 gap-2 sm:gap-3 md:gap-4 relative z-50">
+      {/* Mobile Controls - Arcade Style - Much Larger for Mobile - ALWAYS VISIBLE ON MOBILE */}
+      {(isMobile || window.innerWidth < 768) && (
+      <div 
+        className="flex justify-between items-end mt-auto px-2 sm:px-3 md:px-4 pb-2 sm:pb-3 md:pb-4 gap-2 sm:gap-3 md:gap-4 relative" 
+        style={{ 
+          pointerEvents: 'auto',
+          zIndex: 1000,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          width: '100%',
+          display: 'flex'
+        }}
+      >
         {/* Jump Button - Much Larger and More Prominent */}
         <button 
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onJump(); }}
+            onClick={(e) => { 
+              e.preventDefault(); 
+              e.stopPropagation(); 
+              onJump(); 
+            }}
             onTouchStart={(e) => { 
               e.preventDefault(); 
               e.stopPropagation(); 
@@ -186,7 +224,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
             }}
             onTouchEnd={(e) => { e.preventDefault(); }}
             onMouseDown={(e) => { e.preventDefault(); }}
-            className="rounded-full bg-gradient-to-b from-emerald-500 to-green-600 border-b-6 sm:border-b-8 border-green-800 shadow-2xl active:border-b-0 active:translate-y-2 sm:active:translate-y-3 transition-all flex items-center justify-center group touch-manipulation relative"
+            className="rounded-full bg-gradient-to-b from-emerald-500 to-green-600 border-b-6 sm:border-b-8 border-green-800 shadow-2xl active:border-b-0 active:translate-y-2 sm:active:translate-y-3 transition-all flex items-center justify-center group relative"
             style={{ 
               WebkitTapHighlightColor: 'transparent', 
               width: '110px', 
@@ -196,7 +234,9 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
               WebkitUserSelect: 'none',
               userSelect: 'none',
               cursor: 'pointer',
-              zIndex: 100
+              touchAction: 'manipulation',
+              pointerEvents: 'auto',
+              zIndex: 1001
             }}
         >
             <div className="rounded-full bg-green-700 border-4 sm:border-5 border-green-900 flex items-center justify-center group-active:bg-green-600 transition-all" style={{ width: '100px', height: '100px' }}>
@@ -205,9 +245,13 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
         </button>
 
         {/* Trick Buttons - Much Larger */}
-        <div className="flex gap-2 sm:gap-3 md:gap-4 relative z-50">
+        <div className="flex gap-2 sm:gap-3 md:gap-4 relative" style={{ zIndex: 1001 }}>
             <button 
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('kickflip'); }}
+                onClick={(e) => { 
+                  e.preventDefault(); 
+                  e.stopPropagation(); 
+                  onTrick('kickflip'); 
+                }}
                 onTouchStart={(e) => { 
                   e.preventDefault(); 
                   e.stopPropagation(); 
@@ -215,8 +259,16 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                 }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
                 onMouseDown={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1.5 sm:gap-2 group touch-manipulation relative"
-                style={{ WebkitTapHighlightColor: 'transparent', WebkitUserSelect: 'none', userSelect: 'none', cursor: 'pointer', zIndex: 100 }}
+                className="flex flex-col items-center gap-1.5 sm:gap-2 group relative"
+                style={{ 
+                  WebkitTapHighlightColor: 'transparent', 
+                  WebkitUserSelect: 'none', 
+                  userSelect: 'none', 
+                  cursor: 'pointer', 
+                  touchAction: 'manipulation',
+                  pointerEvents: 'auto',
+                  zIndex: 1002
+                }}
             >
                 <div className="rounded-full bg-gradient-to-b from-blue-500 to-blue-700 border-b-5 sm:border-b-6 border-blue-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '90px', height: '90px', minWidth: '90px', minHeight: '90px' }}>
                     <i className="fas fa-undo text-3xl sm:text-4xl text-white drop-shadow"></i>
@@ -225,7 +277,11 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
             </button>
             
             <button 
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('superman'); }}
+                onClick={(e) => { 
+                  e.preventDefault(); 
+                  e.stopPropagation(); 
+                  onTrick('superman'); 
+                }}
                 onTouchStart={(e) => { 
                   e.preventDefault(); 
                   e.stopPropagation(); 
@@ -233,8 +289,16 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                 }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
                 onMouseDown={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1.5 sm:gap-2 group touch-manipulation relative"
-                style={{ WebkitTapHighlightColor: 'transparent', WebkitUserSelect: 'none', userSelect: 'none', cursor: 'pointer', zIndex: 100 }}
+                className="flex flex-col items-center gap-1.5 sm:gap-2 group relative"
+                style={{ 
+                  WebkitTapHighlightColor: 'transparent', 
+                  WebkitUserSelect: 'none', 
+                  userSelect: 'none', 
+                  cursor: 'pointer', 
+                  touchAction: 'manipulation',
+                  pointerEvents: 'auto',
+                  zIndex: 1002
+                }}
             >
                 <div className="rounded-full bg-gradient-to-b from-red-500 to-red-700 border-b-5 sm:border-b-6 border-red-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '90px', height: '90px', minWidth: '90px', minHeight: '90px' }}>
                     <i className="fas fa-plane text-3xl sm:text-4xl text-white drop-shadow"></i>
@@ -243,7 +307,11 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
             </button>
             
             <button 
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('360'); }}
+                onClick={(e) => { 
+                  e.preventDefault(); 
+                  e.stopPropagation(); 
+                  onTrick('360'); 
+                }}
                 onTouchStart={(e) => { 
                   e.preventDefault(); 
                   e.stopPropagation(); 
@@ -251,8 +319,16 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                 }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
                 onMouseDown={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1.5 sm:gap-2 group touch-manipulation relative"
-                style={{ WebkitTapHighlightColor: 'transparent', WebkitUserSelect: 'none', userSelect: 'none', cursor: 'pointer', zIndex: 100 }}
+                className="flex flex-col items-center gap-1.5 sm:gap-2 group relative"
+                style={{ 
+                  WebkitTapHighlightColor: 'transparent', 
+                  WebkitUserSelect: 'none', 
+                  userSelect: 'none', 
+                  cursor: 'pointer', 
+                  touchAction: 'manipulation',
+                  pointerEvents: 'auto',
+                  zIndex: 1002
+                }}
             >
                 <div className="rounded-full bg-gradient-to-b from-amber-500 to-amber-700 border-b-5 sm:border-b-6 border-amber-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '90px', height: '90px', minWidth: '90px', minHeight: '90px' }}>
                     <i className="fas fa-sync text-3xl sm:text-4xl text-white drop-shadow"></i>
@@ -261,6 +337,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
             </button>
         </div>
       </div>
+      )}
 
       {/* Desktop Hints */}
       <div className="hidden md:flex justify-between items-end pointer-events-auto">

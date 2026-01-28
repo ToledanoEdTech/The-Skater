@@ -18,12 +18,17 @@
         font-family: 'Rubik', sans-serif;
         background-color: #0f172a;
         overflow: hidden;
-        touch-action: none; /* Prevent scroll on mobile */
+        touch-action: pan-x pan-y; /* Allow touch but prevent pinch zoom */
         margin: 0;
         padding: 0;
         width: 100vw;
         height: 100vh;
         position: fixed;
+      }
+      
+      /* Allow buttons to receive touch events */
+      button, [role="button"] {
+        touch-action: manipulation;
       }
       
       /* Force landscape orientation on mobile */

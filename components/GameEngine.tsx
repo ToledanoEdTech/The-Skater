@@ -2494,7 +2494,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
   }, [isActive, isPaused]);
 
   return (
-    <div ref={containerRef} className="w-full h-full flex items-center justify-center bg-slate-900">
+    <div ref={containerRef} className="w-full h-full flex items-center justify-center bg-slate-900" style={{ pointerEvents: 'none' }}>
       <canvas 
           ref={canvasRef} 
           width={CANVAS_WIDTH} 
@@ -2507,7 +2507,8 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
             WebkitUserSelect: 'none',
             userSelect: 'none',
             maxWidth: '100%',
-            maxHeight: '100%'
+            maxHeight: '100%',
+            pointerEvents: 'none'
           }}
       />
     </div>
