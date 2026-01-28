@@ -210,7 +210,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
           display: 'flex'
         }}
       >
-        {/* Jump Button - Much Larger and More Prominent */}
+        {/* Jump Button - Smaller for Mobile */}
         <button 
             onClick={(e) => { 
               e.preventDefault(); 
@@ -224,13 +224,13 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
             }}
             onTouchEnd={(e) => { e.preventDefault(); }}
             onMouseDown={(e) => { e.preventDefault(); }}
-            className="rounded-full bg-gradient-to-b from-emerald-500 to-green-600 border-b-6 sm:border-b-8 border-green-800 shadow-2xl active:border-b-0 active:translate-y-2 sm:active:translate-y-3 transition-all flex items-center justify-center group relative"
+            className="rounded-full bg-gradient-to-b from-emerald-500 to-green-600 border-b-4 sm:border-b-6 border-green-800 shadow-2xl active:border-b-0 active:translate-y-1 sm:active:translate-y-2 transition-all flex items-center justify-center group relative"
             style={{ 
               WebkitTapHighlightColor: 'transparent', 
-              width: '110px', 
-              height: '110px', 
-              minWidth: '110px', 
-              minHeight: '110px',
+              width: '75px', 
+              height: '75px', 
+              minWidth: '75px', 
+              minHeight: '75px',
               WebkitUserSelect: 'none',
               userSelect: 'none',
               cursor: 'pointer',
@@ -239,13 +239,13 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
               zIndex: 1001
             }}
         >
-            <div className="rounded-full bg-green-700 border-4 sm:border-5 border-green-900 flex items-center justify-center group-active:bg-green-600 transition-all" style={{ width: '100px', height: '100px' }}>
-               <i className="fas fa-arrow-up text-5xl sm:text-6xl text-white drop-shadow-md"></i>
+            <div className="rounded-full bg-green-700 border-3 sm:border-4 border-green-900 flex items-center justify-center group-active:bg-green-600 transition-all" style={{ width: '68px', height: '68px' }}>
+               <i className="fas fa-arrow-up text-3xl sm:text-4xl text-white drop-shadow-md"></i>
             </div>
         </button>
 
-        {/* Trick Buttons - Much Larger */}
-        <div className="flex gap-2 sm:gap-3 md:gap-4 relative" style={{ zIndex: 1001 }}>
+        {/* Trick Buttons - Smaller for Mobile */}
+        <div className="flex gap-1.5 sm:gap-2 md:gap-3 relative" style={{ zIndex: 1001 }}>
             <button 
                 onClick={(e) => { 
                   e.preventDefault(); 
@@ -259,7 +259,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                 }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
                 onMouseDown={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1.5 sm:gap-2 group relative"
+                className="flex flex-col items-center gap-1 sm:gap-1.5 group relative"
                 style={{ 
                   WebkitTapHighlightColor: 'transparent', 
                   WebkitUserSelect: 'none', 
@@ -270,10 +270,10 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                   zIndex: 1002
                 }}
             >
-                <div className="rounded-full bg-gradient-to-b from-blue-500 to-blue-700 border-b-5 sm:border-b-6 border-blue-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '90px', height: '90px', minWidth: '90px', minHeight: '90px' }}>
-                    <i className="fas fa-undo text-3xl sm:text-4xl text-white drop-shadow"></i>
+                <div className="rounded-full bg-gradient-to-b from-blue-500 to-blue-700 border-b-4 sm:border-b-5 border-blue-900 shadow-xl active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center" style={{ width: '65px', height: '65px', minWidth: '65px', minHeight: '65px' }}>
+                    <i className="fas fa-undo text-2xl sm:text-3xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-sm sm:text-base font-bold text-blue-300 drop-shadow-md tracking-wider">FLIP</span>
+                <span className="text-xs sm:text-sm font-bold text-blue-300 drop-shadow-md tracking-wider">FLIP</span>
             </button>
             
             <button 
@@ -289,7 +289,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                 }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
                 onMouseDown={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1.5 sm:gap-2 group relative"
+                className="flex flex-col items-center gap-1 sm:gap-1.5 group relative"
                 style={{ 
                   WebkitTapHighlightColor: 'transparent', 
                   WebkitUserSelect: 'none', 
@@ -300,10 +300,10 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                   zIndex: 1002
                 }}
             >
-                <div className="rounded-full bg-gradient-to-b from-red-500 to-red-700 border-b-5 sm:border-b-6 border-red-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '90px', height: '90px', minWidth: '90px', minHeight: '90px' }}>
-                    <i className="fas fa-plane text-3xl sm:text-4xl text-white drop-shadow"></i>
+                <div className="rounded-full bg-gradient-to-b from-red-500 to-red-700 border-b-4 sm:border-b-5 border-red-900 shadow-xl active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center" style={{ width: '65px', height: '65px', minWidth: '65px', minHeight: '65px' }}>
+                    <i className="fas fa-plane text-2xl sm:text-3xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-sm sm:text-base font-bold text-red-300 drop-shadow-md tracking-wider">SUPER</span>
+                <span className="text-xs sm:text-sm font-bold text-red-300 drop-shadow-md tracking-wider">SUPER</span>
             </button>
             
             <button 
@@ -319,7 +319,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                 }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
                 onMouseDown={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1.5 sm:gap-2 group relative"
+                className="flex flex-col items-center gap-1 sm:gap-1.5 group relative"
                 style={{ 
                   WebkitTapHighlightColor: 'transparent', 
                   WebkitUserSelect: 'none', 
@@ -330,10 +330,10 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
                   zIndex: 1002
                 }}
             >
-                <div className="rounded-full bg-gradient-to-b from-amber-500 to-amber-700 border-b-5 sm:border-b-6 border-amber-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '90px', height: '90px', minWidth: '90px', minHeight: '90px' }}>
-                    <i className="fas fa-sync text-3xl sm:text-4xl text-white drop-shadow"></i>
+                <div className="rounded-full bg-gradient-to-b from-amber-500 to-amber-700 border-b-4 sm:border-b-5 border-amber-900 shadow-xl active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center" style={{ width: '65px', height: '65px', minWidth: '65px', minHeight: '65px' }}>
+                    <i className="fas fa-sync text-2xl sm:text-3xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-sm sm:text-base font-bold text-amber-300 drop-shadow-md tracking-wider">360</span>
+                <span className="text-xs sm:text-sm font-bold text-amber-300 drop-shadow-md tracking-wider">360</span>
             </button>
         </div>
       </div>

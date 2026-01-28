@@ -134,6 +134,19 @@
       ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
       ::-webkit-scrollbar-thumb { background: #eab308; border-radius: 4px; }
       ::-webkit-scrollbar-thumb:hover { background: #ca8a04; }
+      
+      /* Better scrolling on mobile */
+      * {
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Allow native scrolling on mobile */
+      @media screen and (max-width: 768px) {
+        .overflow-y-auto {
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: contain;
+        }
+      }
     </style>
   <script type="importmap">
 {

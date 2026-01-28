@@ -10,7 +10,7 @@ interface MenuProps {
 }
 
 const CharacterAvatar = ({ char }: { char: CharacterConfig }) => (
-  <svg viewBox="0 0 100 100" className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 drop-shadow-lg">
+  <svg viewBox="0 0 100 100" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 drop-shadow-lg">
      <defs>
         <clipPath id="circleView">
             <circle cx="50" cy="50" r="45" />
@@ -131,62 +131,62 @@ const Menu: React.FC<MenuProps> = ({ onStart, onOpenShop, onOpenLeaderboard, wal
   const selectedChar = CHARACTERS.find(c => c.id === selectedCharId) || CHARACTERS[0];
 
   return (
-    <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 text-white z-20 overflow-y-auto">
+    <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8 text-white z-20 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
       
-      {/* Title with Gradient and Stroke */}
-      <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 via-orange-500 to-red-600 mb-1 sm:mb-2 md:mb-3 drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)] transform -rotate-2 text-center px-2">
+      {/* Title with Gradient and Stroke - Smaller on Mobile */}
+      <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 via-orange-500 to-red-600 mb-1 sm:mb-2 md:mb-3 drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)] transform -rotate-2 text-center px-2">
         הסקייטר הצדיק
       </h1>
-      <div className="text-xs sm:text-lg md:text-xl lg:text-2xl text-yellow-400 font-bold tracking-[0.2em] sm:tracking-[0.3em] md:tracking-[0.5em] mb-3 sm:mb-6 md:mb-10 uppercase drop-shadow-md text-center">Pro Edition</div>
+      <div className="text-xs sm:text-base md:text-lg lg:text-xl text-yellow-400 font-bold tracking-[0.15em] sm:tracking-[0.25em] md:tracking-[0.4em] mb-2 sm:mb-4 md:mb-6 uppercase drop-shadow-md text-center">Pro Edition</div>
 
-      {/* Wallet Widget */}
-      <div className="absolute top-3 sm:top-4 md:top-6 lg:top-8 left-3 sm:left-4 md:left-6 lg:left-8 flex items-center gap-2 sm:gap-3 bg-slate-800/90 px-3 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl border-2 border-yellow-500/30 shadow-2xl backdrop-blur">
-        <div className="bg-yellow-500 rounded-full w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 flex items-center justify-center text-slate-900 font-bold text-sm sm:text-base md:text-lg">₪</div>
-        <span className="font-mono text-xl sm:text-2xl md:text-3xl font-bold text-yellow-100">{wallet}</span>
+      {/* Wallet Widget - Smaller on Mobile */}
+      <div className="absolute top-2 sm:top-3 md:top-4 lg:top-6 left-2 sm:left-3 md:left-4 lg:left-6 flex items-center gap-1.5 sm:gap-2 md:gap-3 bg-slate-800/90 px-2 sm:px-3 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl md:rounded-2xl border-2 border-yellow-500/30 shadow-2xl backdrop-blur">
+        <div className="bg-yellow-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 flex items-center justify-center text-slate-900 font-bold text-xs sm:text-sm md:text-base">₪</div>
+        <span className="font-mono text-base sm:text-xl md:text-2xl font-bold text-yellow-100">{wallet}</span>
       </div>
 
-      <div className="mb-3 sm:mb-4 md:mb-6 text-slate-400 text-sm sm:text-base md:text-lg uppercase tracking-widest font-bold text-center">בחר את הצדיק שלך</div>
+      <div className="mb-2 sm:mb-3 md:mb-4 text-slate-400 text-xs sm:text-sm md:text-base uppercase tracking-widest font-bold text-center">בחר את הצדיק שלך</div>
 
-      {/* Character Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 mb-4 sm:mb-6 md:mb-12 max-w-5xl p-2 sm:p-3 md:p-4 w-full">
+      {/* Character Grid - Smaller on Mobile */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-5 mb-3 sm:mb-4 md:mb-6 max-w-5xl p-1 sm:p-2 md:p-3 w-full">
         {CHARACTERS.map(char => (
             <button
                 key={char.id}
                 onClick={() => setSelectedCharId(char.id)}
-                className={`relative group flex flex-col items-center p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl border-2 sm:border-3 transition-all duration-300 transform touch-manipulation ${
+                className={`relative group flex flex-col items-center p-2 sm:p-3 md:p-4 rounded-lg sm:rounded-xl md:rounded-2xl border-2 transition-all duration-300 transform touch-manipulation ${
                     selectedCharId === char.id 
-                    ? 'border-yellow-400 bg-slate-800 scale-105 sm:scale-110 shadow-[0_0_30px_rgba(250,204,21,0.4)] z-10' 
+                    ? 'border-yellow-400 bg-slate-800 scale-105 shadow-[0_0_30px_rgba(250,204,21,0.4)] z-10' 
                     : 'border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:-translate-y-1 hover:border-slate-500 opacity-80 hover:opacity-100 active:scale-95'
                 }`}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
             >
                 <CharacterAvatar char={char} />
-                <span className={`mt-2 sm:mt-3 font-bold text-xs sm:text-sm md:text-base text-center transition-colors ${selectedCharId === char.id ? 'text-yellow-400' : 'text-slate-400 group-hover:text-white'}`}>
+                <span className={`mt-1 sm:mt-2 font-bold text-[10px] sm:text-xs md:text-sm text-center transition-colors ${selectedCharId === char.id ? 'text-yellow-400' : 'text-slate-400 group-hover:text-white'}`}>
                     {char.name}
                 </span>
                 {selectedCharId === char.id && (
-                    <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 bg-yellow-500 text-slate-900 rounded-full w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 flex items-center justify-center shadow-lg">
-                        <i className="fas fa-check text-xs sm:text-sm md:text-base"></i>
+                    <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-yellow-500 text-slate-900 rounded-full w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 flex items-center justify-center shadow-lg">
+                        <i className="fas fa-check text-[8px] sm:text-xs md:text-sm"></i>
                     </div>
                 )}
             </button>
         ))}
       </div>
 
-      {/* Main Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 w-full max-w-2xl px-2">
+      {/* Main Actions - Smaller on Mobile */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 w-full max-w-2xl px-2">
         <button 
             onClick={() => onStart(selectedChar)}
-            className="flex-[2] bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-black py-4 sm:py-5 md:py-6 px-6 sm:px-8 md:px-10 rounded-xl sm:rounded-2xl text-lg sm:text-xl md:text-2xl lg:text-3xl shadow-[0_10px_20px_rgba(16,185,129,0.3)] transform transition active:scale-95 flex items-center justify-center gap-2 sm:gap-3 md:gap-4 border-b-4 border-green-800 touch-manipulation"
+            className="flex-[2] bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-black py-2.5 sm:py-3 md:py-4 lg:py-5 px-4 sm:px-6 md:px-8 rounded-lg sm:rounded-xl md:rounded-2xl text-sm sm:text-base md:text-xl lg:text-2xl shadow-[0_10px_20px_rgba(16,185,129,0.3)] transform transition active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3 border-b-3 sm:border-b-4 border-green-800 touch-manipulation"
             style={{ WebkitTapHighlightColor: 'transparent' }}
         >
-            <i className="fas fa-play text-lg sm:text-xl md:text-2xl"></i> <span>התחל משחק</span>
+            <i className="fas fa-play text-sm sm:text-base md:text-xl"></i> <span>התחל משחק</span>
         </button>
         
-        <div className="flex flex-1 gap-2 sm:gap-3 md:gap-4">
+        <div className="flex flex-1 gap-1.5 sm:gap-2 md:gap-3">
             <button 
                 onClick={onOpenShop}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-amber-400 font-bold py-4 sm:py-5 md:py-6 rounded-xl sm:rounded-2xl text-xl sm:text-2xl md:text-3xl shadow-lg transition active:scale-95 border-b-4 border-slate-900 flex items-center justify-center touch-manipulation"
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-amber-400 font-bold py-2.5 sm:py-3 md:py-4 lg:py-5 rounded-lg sm:rounded-xl md:rounded-2xl text-base sm:text-xl md:text-2xl shadow-lg transition active:scale-95 border-b-3 sm:border-b-4 border-slate-900 flex items-center justify-center touch-manipulation"
                 title="חנות"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
             >
@@ -194,7 +194,7 @@ const Menu: React.FC<MenuProps> = ({ onStart, onOpenShop, onOpenLeaderboard, wal
             </button>
             <button 
                 onClick={onOpenLeaderboard}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-blue-400 font-bold py-4 sm:py-5 md:py-6 rounded-xl sm:rounded-2xl text-xl sm:text-2xl md:text-3xl shadow-lg transition active:scale-95 border-b-4 border-slate-900 flex items-center justify-center touch-manipulation"
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-blue-400 font-bold py-2.5 sm:py-3 md:py-4 lg:py-5 rounded-lg sm:rounded-xl md:rounded-2xl text-base sm:text-xl md:text-2xl shadow-lg transition active:scale-95 border-b-3 sm:border-b-4 border-slate-900 flex items-center justify-center touch-manipulation"
                 title="טבלה"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
             >
