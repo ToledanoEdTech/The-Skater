@@ -450,7 +450,6 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     
     // Improved running animation - slower and more realistic
     const runCycle = gameState.current.frame * 0.2; // Slower animation (was 0.5)
-    const runAnim = p.crashed ? 0 : (p.grounded && !p.grinding ? Math.sin(runCycle) : 0);
     
     // Legs & Shoes - Positioned ON the skateboard (not under it)
     const drawLeg = (isBack: boolean) => {
