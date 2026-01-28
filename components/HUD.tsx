@@ -185,26 +185,26 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
 
       {/* Missions Panel - Hidden on mobile to avoid blocking game */}
       {missions.length > 0 && !isMobile && window.innerWidth >= 768 && (
-        <div className="absolute top-20 sm:top-16 md:top-14 right-2 sm:right-3 md:right-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-lg p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl border-2 sm:border-3 border-amber-500/50 shadow-2xl max-w-[260px] sm:max-w-[300px] md:max-w-[340px]">
-          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 pb-2 sm:pb-2.5 border-b border-amber-500/30">
-            <i className="fas fa-tasks text-amber-400 text-base sm:text-lg md:text-xl"></i>
-            <div className="text-amber-400 font-bold text-sm sm:text-base md:text-lg">משימות</div>
+        <div className="absolute top-40 sm:top-36 md:top-32 right-2 sm:right-3 md:right-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-lg p-2 sm:p-3 md:p-3 rounded-lg sm:rounded-xl border-2 border-amber-500/50 shadow-2xl max-w-[220px] sm:max-w-[260px] md:max-w-[280px]">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 pb-1.5 sm:pb-2 border-b border-amber-500/30">
+            <i className="fas fa-tasks text-amber-400 text-sm sm:text-base md:text-lg"></i>
+            <div className="text-amber-400 font-bold text-xs sm:text-sm md:text-base">משימות</div>
           </div>
-          <div className="space-y-2 sm:space-y-2.5 max-h-[180px] sm:max-h-[220px] md:max-h-[240px] overflow-y-auto custom-scroll">
+          <div className="space-y-1.5 sm:space-y-2 max-h-[140px] sm:max-h-[160px] md:max-h-[180px] overflow-y-auto custom-scroll">
             {missions.slice(0, 3).map(mission => (
-              <div key={mission.id} className={`p-2.5 sm:p-3 md:p-3.5 rounded-lg sm:rounded-xl border-2 transition-all ${
+              <div key={mission.id} className={`p-1.5 sm:p-2 md:p-2 rounded-md sm:rounded-lg border-2 transition-all ${
                 mission.completed 
                   ? 'bg-gradient-to-r from-green-900/60 to-green-800/40 border-green-500/50 text-green-200 shadow-lg shadow-green-500/20' 
                   : 'bg-slate-800/60 border-slate-600/50 text-slate-200 hover:border-amber-500/50'
               }`}>
-                <div className="flex items-start justify-between gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                  <span className="text-xs sm:text-sm md:text-base font-medium leading-tight flex-1">{mission.description}</span>
+                <div className="flex items-start justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5">
+                  <span className="text-[10px] sm:text-xs md:text-sm font-medium leading-tight flex-1">{mission.description}</span>
                   {mission.completed && (
-                    <i className="fas fa-check-circle text-green-400 text-base sm:text-lg md:text-xl flex-shrink-0"></i>
+                    <i className="fas fa-check-circle text-green-400 text-sm sm:text-base md:text-lg flex-shrink-0"></i>
                   )}
                 </div>
                 {!mission.completed && (
-                  <div className="mt-2 sm:mt-2.5 bg-slate-700/50 rounded-full h-2 sm:h-2.5 overflow-hidden shadow-inner">
+                  <div className="mt-1.5 sm:mt-2 bg-slate-700/50 rounded-full h-1.5 sm:h-2 overflow-hidden shadow-inner">
                     <div 
                       className="bg-gradient-to-r from-amber-500 to-amber-400 h-full transition-all duration-500 shadow-sm"
                       style={{ width: `${Math.min((mission.progress / mission.target) * 100, 100)}%` }}

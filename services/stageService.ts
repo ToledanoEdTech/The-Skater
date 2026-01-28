@@ -24,6 +24,36 @@ export const STAGES: Stage[] = [
         name: 'מאה שערים',
         distance: 3000,
         color: '#7c3aed'
+    },
+    {
+        type: 'haredi_neighborhood',
+        name: 'קרית מנחם',
+        distance: 4000,
+        color: '#4a5568'
+    },
+    {
+        type: 'tel_aviv_promenade',
+        name: 'קרית יובל',
+        distance: 5000,
+        color: '#0ea5e9'
+    },
+    {
+        type: 'desert',
+        name: 'גבעת שאול',
+        distance: 6000,
+        color: '#d97706'
+    },
+    {
+        type: 'western_wall',
+        name: 'קרית משה',
+        distance: 7000,
+        color: '#7c3aed'
+    },
+    {
+        type: 'haredi_neighborhood',
+        name: 'מלחה',
+        distance: 8000,
+        color: '#4a5568'
     }
 ];
 

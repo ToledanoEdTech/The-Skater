@@ -22,7 +22,7 @@ const App: React.FC = () => {
   
   const [purchasedGadgets, setPurchasedGadgets] = useState<Record<GadgetType, boolean>>(() => {
       const saved = localStorage.getItem('purchasedGadgets');
-      return saved ? JSON.parse(saved) : { none: true, rainbow_trail: false, neon_board: false, gold_chain: false };
+      return saved ? JSON.parse(saved) : { none: true, rainbow_trail: false, neon_board: false, gold_chain: false, fire_trail: false, ice_board: false, diamond_sparkles: false, lightning_aura: false, cosmic_wings: false, neon_glow: false };
   });
   
   const [equippedGadget, setEquippedGadget] = useState<GadgetType>(() => {

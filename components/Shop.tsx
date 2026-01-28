@@ -22,7 +22,13 @@ const POWERUPS: { type: PowerUpType; name: string; desc: string; cost: number; i
 const GADGETS: { type: GadgetType; name: string; desc: string; cost: number; icon: string; color: string; illustration: string }[] = [
     { type: 'rainbow_trail', name: 'שובל קשת', desc: 'משאיר שובל צבעוני בקפיצה', cost: 100, icon: 'fa-rainbow', color: 'text-pink-400', illustration: '🌈' },
     { type: 'neon_board', name: 'בורד ניאון', desc: 'סקייטבורד זוהר בחושך', cost: 150, icon: 'fa-lightbulb', color: 'text-green-400', illustration: '💡' },
-    { type: 'gold_chain', name: 'שרשרת חי', desc: 'שרשרת זהב יוקרתית', cost: 200, icon: 'fa-gem', color: 'text-yellow-400', illustration: '💎' },
+    { type: 'gold_chain', name: 'שרשרת זהב', desc: 'שרשרת זהב יוקרתית', cost: 200, icon: 'fa-gem', color: 'text-yellow-400', illustration: '💎' },
+    { type: 'fire_trail', name: 'שובל אש', desc: 'שובל אש לוהט בקפיצה', cost: 250, icon: 'fa-fire', color: 'text-red-500', illustration: '🔥' },
+    { type: 'ice_board', name: 'בורד קרח', desc: 'סקייטבורד קרח קריסטלי', cost: 300, icon: 'fa-snowflake', color: 'text-cyan-400', illustration: '❄️' },
+    { type: 'diamond_sparkles', name: 'נצנוצי יהלום', desc: 'נצנוצים יהלומיים סביב', cost: 350, icon: 'fa-gem', color: 'text-blue-300', illustration: '✨' },
+    { type: 'lightning_aura', name: 'הילת ברקים', desc: 'הילת ברקים זוהרת', cost: 400, icon: 'fa-bolt', color: 'text-purple-400', illustration: '⚡' },
+    { type: 'cosmic_wings', name: 'כנפיים קוסמיות', desc: 'כנפיים קוסמיות מעופפות', cost: 450, icon: 'fa-rocket', color: 'text-indigo-400', illustration: '🚀' },
+    { type: 'neon_glow', name: 'זוהר ניאון', desc: 'זוהר ניאון חזק סביב', cost: 500, icon: 'fa-star', color: 'text-green-300', illustration: '⭐' },
 ];
 
 const Shop: React.FC<ShopProps> = ({ 

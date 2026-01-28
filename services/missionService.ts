@@ -8,8 +8,8 @@ export class MissionService {
             {
                 id: 'm1',
                 type: 'collect_coins',
-                description: 'אסוף 50 מטבעות בריצה אחת',
-                target: 50,
+                description: 'אסוף 20 מטבעות בריצה אחת',
+                target: 20,
                 progress: 0,
                 reward: 100,
                 completed: false
@@ -25,9 +25,9 @@ export class MissionService {
             },
             {
                 id: 'm3',
-                type: 'crash_distance',
-                description: 'התרסק אחרי 500 מטר',
-                target: 500,
+                type: 'ramp_jumps',
+                description: 'קפוץ על 6 רמפות',
+                target: 6,
                 progress: 0,
                 reward: 200,
                 completed: false
@@ -71,7 +71,10 @@ export class MissionService {
         this.missions.forEach(mission => {
             if (mission.type === type && !mission.completed) {
                 const wasCompleted = mission.completed;
-                const completed = this.updateMission(mission.id, mission.progress + value);
+                // For ramp_jumps and other discrete missions, add incrementally
+                // For cumulative missions like distance/time, the value passed is cumulative
+                const progressValue = mission.progress + value;
+                const completed = this.updateMission(mission.id, progressValue);
                 if (completed && !wasCompleted) {
                     totalReward += mission.reward;
                 }

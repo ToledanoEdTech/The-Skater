@@ -1,6 +1,6 @@
-import { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useRef, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { 
-  CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, GRAVITY, JUMP_FORCE, BASE_SPEED 
+  CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, GRAVITY, JUMP_FORCE, BASE_SPEED, MAX_SPEED 
 } from '../constants';
 import { 
   CharacterConfig, Obstacle, Coin, Particle, FloatingText, PowerUpState, TrickType, PlayerState, GadgetType, Boss, Mission
@@ -31,12 +31,15 @@ export interface GameEngineHandle {
   slide: () => void;
 }
 
-const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
-  character, isActive, isPaused, sessionId, activePowerups, equippedGadget, onScoreUpdate, onGameOver, onPowerupExpire, onMissionUpdate, onStageChange, onReward
-}, ref) => {
+const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) => {
+  const {
+    character, isActive, isPaused, sessionId, activePowerups, equippedGadget, onScoreUpdate, onGameOver, onPowerupExpire, onMissionUpdate, onStageChange, onReward
+  } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const reqRef = useRef<number>();
+  const isActiveRef = useRef(isActive);
+  const isPausedRef = useRef(isPaused);
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
   const obstacleImagesRef = useRef<Record<string, HTMLImageElement>>({});
   const characterFaceImagesRef = useRef<Record<string, HTMLImageElement>>({});
@@ -54,6 +57,9 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     lastBossDistance: 0,
     currentStage: 'haredi_neighborhood',
     supermanCombo: 0, // Track superman combo for missions
+    jumpedRamps: new Set<number>(), // Track which ramps we've jumped on
+    lastMissionDistance: 0, // Track last distance for mission updates
+    lastMissionTime: 0, // Track last time for mission updates
     
     // Player
     player: {
@@ -96,9 +102,19 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         p.jumpCount++;
         audioService.playJump();
         
-        // Gadget: Rainbow Trail
+        // Gadget effects on jump
         if (equippedGadget === 'rainbow_trail') {
             spawnParticles(p.x + 30, p.y + 100, 'rainbow', 'sparkle', 10);
+        } else if (equippedGadget === 'fire_trail') {
+            spawnParticles(p.x + 30, p.y + 100, '#ff4500', 'sparkle', 12);
+        } else if (equippedGadget === 'diamond_sparkles') {
+            spawnParticles(p.x + 30, p.y + 100, '#b9f2ff', 'sparkle', 15);
+        } else if (equippedGadget === 'lightning_aura') {
+            spawnParticles(p.x + 30, p.y + 100, '#9370db', 'sparkle', 10);
+        } else if (equippedGadget === 'cosmic_wings') {
+            spawnParticles(p.x + 30, p.y + 100, '#4b0082', 'star', 8);
+        } else if (equippedGadget === 'neon_glow') {
+            spawnParticles(p.x + 30, p.y + 100, '#39ff14', 'sparkle', 10);
         } else {
             spawnParticles(p.x + 30, p.y + 100, '#fff', 'dust', 5);
         }
@@ -169,7 +185,23 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         spawnFloatingText(text, p.x, p.y);
         if (type !== 'superman') audioService.playTrick();
         
-        const color = equippedGadget === 'rainbow_trail' ? 'rainbow' : '#f1c40f';
+        // Gadget effects on trick
+        let color = '#f1c40f';
+        if (equippedGadget === 'rainbow_trail') {
+            color = 'rainbow';
+        } else if (equippedGadget === 'fire_trail') {
+            color = '#ff4500';
+        } else if (equippedGadget === 'ice_board') {
+            color = '#00ffff';
+        } else if (equippedGadget === 'diamond_sparkles') {
+            color = '#b9f2ff';
+        } else if (equippedGadget === 'lightning_aura') {
+            color = '#9370db';
+        } else if (equippedGadget === 'cosmic_wings') {
+            color = '#4b0082';
+        } else if (equippedGadget === 'neon_glow') {
+            color = '#39ff14';
+        }
         spawnParticles(p.x + 30, p.y + 50, color, 'star', 8);
       }
     }
@@ -212,6 +244,9 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     st.lastBossDistance = 0;
     st.currentStage = 'haredi_neighborhood';
     st.supermanCombo = 0;
+    st.jumpedRamps.clear();
+    st.lastMissionDistance = 0;
+    st.lastMissionTime = 0;
     st.player.y = GROUND_Y - st.player.height;
     st.player.vy = 0;
     st.player.crashed = false;
@@ -349,11 +384,19 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         const boardWidth = 8; // Board thickness
         const noseTailCurve = 6; // How much nose/tail curve up
         
-        // Gadget: Neon Board
+        // Gadget: Board effects
         if (equippedGadget === 'neon_board') {
             ctx.shadowBlur = 15;
             ctx.shadowColor = '#00ff00';
             ctx.fillStyle = '#00ff00'; 
+        } else if (equippedGadget === 'ice_board') {
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00ffff';
+            ctx.fillStyle = '#b0e0e6'; // Light blue ice color
+        } else if (equippedGadget === 'neon_glow') {
+            ctx.shadowBlur = 25;
+            ctx.shadowColor = '#39ff14';
+            ctx.fillStyle = '#1e1b18'; // Dark board with neon glow
         } else {
             ctx.fillStyle = '#1e1b18'; // Dark board color
         }
@@ -391,9 +434,12 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         ctx.quadraticCurveTo(boardLength/2 - 8, 35 - noseTailCurve, boardLength/2, 35);
         ctx.stroke();
         
-        ctx.shadowBlur = 0; // Reset shadow
+        // Reset shadow for gadgets that don't need it
+        if (equippedGadget !== 'neon_board' && equippedGadget !== 'ice_board' && equippedGadget !== 'neon_glow') {
+            ctx.shadowBlur = 0;
+        }
 
-        if (equippedGadget !== 'neon_board') {
+        if (equippedGadget !== 'neon_board' && equippedGadget !== 'ice_board') {
             // Grip tape (sandpaper texture) - curved with nose/tail
             ctx.fillStyle = '#2c2c2c';
             ctx.beginPath();
@@ -612,7 +658,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     ctx.closePath();
     ctx.fill();
     
-    // Gadget: Gold Chain
+    // Gadget: Accessories
     if (equippedGadget === 'gold_chain') {
         ctx.save();
         ctx.strokeStyle = '#ffd700';
@@ -620,6 +666,72 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
         ctx.beginPath(); ctx.arc(0, -20, 10, 0, Math.PI); ctx.stroke();
         ctx.fillStyle = '#ffd700';
         ctx.font = '10px Arial'; ctx.textAlign='center'; ctx.fillText('ח', 0, -8);
+        ctx.restore();
+    }
+    
+    // Gadget: Diamond Sparkles - sparkles around player
+    if (equippedGadget === 'diamond_sparkles') {
+        ctx.save();
+        const sparkleFrame = gameState.current.frame;
+        for (let i = 0; i < 6; i++) {
+            const angle = (sparkleFrame * 0.1 + i * Math.PI / 3) % (Math.PI * 2);
+            const radius = 25 + Math.sin(sparkleFrame * 0.2 + i) * 5;
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+            ctx.fillStyle = `rgba(185, 242, 255, ${0.7 + Math.sin(sparkleFrame * 0.3 + i) * 0.3})`;
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+    
+    // Gadget: Lightning Aura - electric aura around player
+    if (equippedGadget === 'lightning_aura') {
+        ctx.save();
+        ctx.strokeStyle = `rgba(147, 112, 219, ${0.6 + Math.sin(gameState.current.frame * 0.3) * 0.4})`;
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#9370db';
+        ctx.beginPath();
+        ctx.arc(0, 0, 35, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    }
+    
+    // Gadget: Cosmic Wings - wings effect
+    if (equippedGadget === 'cosmic_wings') {
+        ctx.save();
+        const wingFrame = gameState.current.frame;
+        const wingFlap = Math.sin(wingFrame * 0.15) * 0.3;
+        ctx.fillStyle = `rgba(75, 0, 130, ${0.7})`;
+        // Left wing
+        ctx.beginPath();
+        ctx.moveTo(-25, -10);
+        ctx.quadraticCurveTo(-35 + wingFlap * 5, -20, -40 + wingFlap * 10, -15);
+        ctx.quadraticCurveTo(-35 + wingFlap * 5, -5, -25, -10);
+        ctx.fill();
+        // Right wing
+        ctx.beginPath();
+        ctx.moveTo(25, -10);
+        ctx.quadraticCurveTo(35 - wingFlap * 5, -20, 40 - wingFlap * 10, -15);
+        ctx.quadraticCurveTo(35 - wingFlap * 5, -5, 25, -10);
+        ctx.fill();
+        ctx.restore();
+    }
+    
+    // Gadget: Fire Trail - fire particles around player
+    if (equippedGadget === 'fire_trail' && !p.grounded) {
+        ctx.save();
+        for (let i = 0; i < 3; i++) {
+            const fireX = (Math.random() - 0.5) * 30;
+            const fireY = 20 + Math.random() * 15;
+            ctx.fillStyle = `rgba(255, ${69 + Math.random() * 50}, 0, ${0.8})`;
+            ctx.beginPath();
+            ctx.arc(fireX, fireY, 4 + Math.random() * 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
         ctx.restore();
     }
     
@@ -1662,20 +1774,29 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
 
   const handleCollision = (obs: Obstacle) => {
     const p = gameState.current.player;
+    const st = gameState.current;
     if (p.crashed || p.flashCounter > 0) return;
 
     // RAMP AUTO-JUMP LOGIC
     if (obs.type.includes('ramp')) {
         // If hitting the front/body of the ramp, launch player up
-        if (p.x + p.width > obs.x) {
+        // Only jump if we haven't already jumped on this ramp and player is not already in air from this ramp
+        if (p.x + p.width > obs.x && !st.jumpedRamps.has(obs.id) && !p.rampBoosted) {
             p.vy = JUMP_FORCE * 1.3;
             p.grounded = false;
             p.rampBoosted = true;
             p.grinding = false; // Cannot grind if launching
+            // Track ramp jump for mission (only count once per ramp)
+            st.jumpedRamps.add(obs.id);
+            missionService.updateMissionByType('ramp_jumps', 1);
             audioService.playJump();
             spawnFloatingText("AIR TIME!", p.x, p.y - 60, '#fbbf24');
             spawnParticles(p.x + 30, p.y + p.height, '#fff', 'dust', 10);
             return; // Safe!
+        }
+        // If already jumped on this ramp, just return safely
+        if (st.jumpedRamps.has(obs.id)) {
+            return; // Safe - already handled this ramp
         }
     }
 
@@ -1712,7 +1833,6 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     audioService.playCrash();
     
     // Check crash distance mission
-    const st = gameState.current;
     if (st.distance >= 500) {
         const reward = missionService.updateMissionByType('crash_distance', st.distance);
         if (reward > 0 && onReward) {
@@ -1792,10 +1912,15 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
       }
     }
     
-    if (!p.crashed && isActive && !isPaused) {
+    if (!p.crashed && isActiveRef.current && !isPausedRef.current) {
+       // Increase speed based on distance (progressive difficulty)
+       const speedIncrease = Math.min(st.distance / 15000, 1.5); // Max 1.5x speed increase (slower acceleration)
+       st.speed = BASE_SPEED + (speedIncrease * (MAX_SPEED - BASE_SPEED));
+       
        let speedMult = st.speed / BASE_SPEED;
        let multiplier = st.combo * (activePowerups.double ? 2 : 1);
-       st.score += 0.1 * speedMult * multiplier;
+       // Score increases faster as speed increases
+       st.score += 0.1 * speedMult * multiplier * (1 + speedIncrease * 0.5);
        
        // Update distance (1 meter per frame roughly)
        st.distance += st.speed * 0.1;
@@ -1812,11 +1937,19 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
        
        // Update missions
        if (onMissionUpdate) {
-           // Update distance mission
-           missionService.updateMissionByType('crash_distance', st.distance);
-           // Update survive time mission
+           // Update distance mission - only update when distance increases
+           if (st.distance > st.lastMissionDistance) {
+               const distanceDelta = st.distance - st.lastMissionDistance;
+               missionService.updateMissionByType('crash_distance', distanceDelta);
+               st.lastMissionDistance = st.distance;
+           }
+           // Update survive time mission - only update when time increases
            const surviveTime = Math.floor((Date.now() - st.startTime) / 1000);
-           missionService.updateMissionByType('survive_time', surviveTime);
+           if (surviveTime > st.lastMissionTime) {
+               const timeDelta = surviveTime - st.lastMissionTime;
+               missionService.updateMissionByType('survive_time', timeDelta);
+               st.lastMissionTime = surviveTime;
+           }
            onMissionUpdate(missionService.getMissions());
        }
        
@@ -1827,30 +1960,36 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
   const updateObstacles = () => {
       const st = gameState.current;
       
-      if (st.frame % Math.floor(2000 / st.speed) === 0) {
-          const types: Obstacle['type'][] = ['bench', 'bush', 'dog', 'cat', 'ramp-kicker', 'ramp-quarter', 'fire-hydrant', 'bench-1', 'bench-2', 'trash-can', 'rail'];
+      // Spawn obstacles more frequently as distance increases (more obstacles = harder)
+      const obstacleSpawnRate = Math.max(1500 / st.speed, 800 / st.speed * (1 + st.distance / 10000));
+      
+      if (st.frame % Math.floor(obstacleSpawnRate) === 0) {
+          const types: Obstacle['type'][] = ['bench', 'bush', 'dog', 'cat', 'ramp-kicker', 'ramp-quarter', 'fire-hydrant', 'bench-1', 'bench-2', 'trash-can', 'rail', 'car'];
           const type = types[Math.floor(Math.random() * types.length)];
           let w = 80, h = 60;
-          if (type === 'bench') { w = 280; h = 120; }
-          if (type === 'bench-1') { w = 280; h = 120; }
-          if (type === 'bench-2') { w = 280; h = 120; }
+          if (type === 'bench') { w = 350; h = 150; }
+          if (type === 'bench-1') { w = 350; h = 150; }
+          if (type === 'bench-2') { w = 350; h = 150; }
           if (type === 'bush') { w = 180; h = 130; }
           if (type === 'dog') { w = 90; h = 65; }
-          if (type === 'cat') { w = 65; h = 50; }
+          if (type === 'cat') { w = 80; h = 60; }
           if (type === 'ramp-kicker') { w = 240; h = 140; }
           if (type === 'ramp-quarter') { w = 280; h = 200; }
           if (type === 'fire-hydrant') { w = 100; h = 140; }
           if (type === 'trash-can') { w = 120; h = 150; }
           if (type === 'rail') { w = 400; h = 100; }
+          if (type === 'car') { w = 200; h = 80; }
 
           // Lower ramps and benches closer to the ground
           let yOffset = 0;
           if (type.includes('ramp')) {
               yOffset = 50; // Lower ramps by 50 pixels
           } else if (type === 'bench' || type === 'bench-1' || type === 'bench-2') {
-              yOffset = 40; // Lower benches by 40 pixels
+              yOffset = 40; // Position benches on the border between sidewalk and road
           } else if (type === 'fire-hydrant' || type === 'trash-can') {
               yOffset = 30; // Lower fire hydrant and trash can by 30 pixels
+          } else if (type === 'car') {
+              yOffset = 0; // Car is on the ground
           }
 
           st.obstacles.push({
@@ -1865,7 +2004,12 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
       }
 
       st.obstacles.forEach(obs => {
-          obs.x -= st.speed;
+          // Cars move faster (like police car) - from right to left
+          if (obs.type === 'car') {
+              obs.x -= st.speed * 1.2; // Moves left faster
+          } else {
+              obs.x -= st.speed;
+          }
           obs.animFrame++;
           if (obs.x + obs.w < -100) obs.markedForDeletion = true;
           
@@ -1883,7 +2027,11 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
               if (isGrindable && p.vy >= 0 && p.y + p.height < obs.y + 30) {
                   handleCollision(obs); // Grind start
               } else if (isRamp) {
-                  handleCollision(obs); // Launch
+                  // Only handle ramp collision if we haven't already jumped on it
+                  if (!st.jumpedRamps.has(obs.id)) {
+                      handleCollision(obs); // Launch
+                  }
+                  // If already jumped, just let player pass through safely
               } else if (!p.grinding) {
                   handleCollision(obs); // Crash
               }
@@ -1957,7 +2105,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
       
       // Spawn boss if needed
       if (bossService.shouldSpawnBoss(st.distance, st.lastBossDistance)) {
-          const bossType: 'police_car' | 'rival_skater' = Math.random() > 0.5 ? 'police_car' : 'rival_skater';
+          const bossType: 'police_car' = 'police_car'; // Only police car, no rival skater
           st.bosses.push(bossService.spawnBoss(bossType, st.distance));
           st.lastBossDistance = st.distance;
           spawnFloatingText('בוס מגיע!', p.x, p.y - 60, '#ff0000');
@@ -2139,6 +2287,69 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
                drawDetailedDog(ctx, obs.x, obs.y, obs.w, obs.h, obs.animFrame);
            } else if (obs.type === 'cat') {
                drawDetailedCat(ctx, obs.x, obs.y, obs.w, obs.h);
+           } else if (obs.type === 'car') {
+               // Draw regular car (similar to police car but without police features)
+               ctx.save();
+               ctx.translate(obs.x + obs.w / 2, obs.y + obs.h / 2);
+               
+               // Car body - more realistic shape
+               const bodyGradient = ctx.createLinearGradient(-obs.w / 2, -obs.h / 2, -obs.w / 2, obs.h / 2);
+               bodyGradient.addColorStop(0, '#64748b'); // Lighter gray top
+               bodyGradient.addColorStop(1, '#475569'); // Darker gray bottom
+               ctx.fillStyle = bodyGradient;
+               
+               // Main body with rounded corners
+               const r = 8;
+               ctx.beginPath();
+               ctx.moveTo(-obs.w / 2 + r, -obs.h / 2);
+               ctx.lineTo(obs.w / 2 - r, -obs.h / 2);
+               ctx.quadraticCurveTo(obs.w / 2, -obs.h / 2, obs.w / 2, -obs.h / 2 + r);
+               ctx.lineTo(obs.w / 2, obs.h / 2 - r);
+               ctx.quadraticCurveTo(obs.w / 2, obs.h / 2, obs.w / 2 - r, obs.h / 2);
+               ctx.lineTo(-obs.w / 2 + r, obs.h / 2);
+               ctx.quadraticCurveTo(-obs.w / 2, obs.h / 2, -obs.w / 2, obs.h / 2 - r);
+               ctx.lineTo(-obs.w / 2, -obs.h / 2 + r);
+               ctx.quadraticCurveTo(-obs.w / 2, -obs.h / 2, -obs.w / 2 + r, -obs.h / 2);
+               ctx.closePath();
+               ctx.fill();
+               
+               // Windows
+               ctx.fillStyle = '#1e293b';
+               ctx.fillRect(-obs.w / 2 + 25, -obs.h / 2 + 12, 50, 25);
+               ctx.fillRect(obs.w / 2 - 75, -obs.h / 2 + 12, 50, 25);
+               
+               // Window frames
+               ctx.strokeStyle = '#64748b';
+               ctx.lineWidth = 2;
+               ctx.strokeRect(-obs.w / 2 + 25, -obs.h / 2 + 12, 50, 25);
+               ctx.strokeRect(obs.w / 2 - 75, -obs.h / 2 + 12, 50, 25);
+               
+               // Grille
+               ctx.fillStyle = '#0f172a';
+               ctx.fillRect(-obs.w / 2 + 10, obs.h / 2 - 25, obs.w - 20, 8);
+               for (let i = 0; i < 5; i++) {
+                   ctx.fillRect(-obs.w / 2 + 15 + i * 35, obs.h / 2 - 25, 2, 8);
+               }
+               
+               // Wheels
+               ctx.fillStyle = '#000000';
+               ctx.beginPath();
+               ctx.arc(-obs.w / 2 + 25, obs.h / 2 - 8, 14, 0, Math.PI * 2);
+               ctx.fill();
+               ctx.beginPath();
+               ctx.arc(obs.w / 2 - 25, obs.h / 2 - 8, 14, 0, Math.PI * 2);
+               ctx.fill();
+               
+               // Wheel rims
+               ctx.fillStyle = '#64748b';
+               ctx.beginPath();
+               ctx.arc(-obs.w / 2 + 25, obs.h / 2 - 8, 8, 0, Math.PI * 2);
+               ctx.fill();
+               ctx.beginPath();
+               ctx.arc(obs.w / 2 - 25, obs.h / 2 - 8, 8, 0, Math.PI * 2);
+               ctx.fill();
+               
+               ctx.restore();
            } else {
                drawShadow(ctx, obs.x, obs.w, 0);
                
@@ -2301,10 +2512,22 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
       ctx.globalAlpha = 1;
   };
 
-  const gameLoop = () => {
-    if (!canvasRef.current || isPaused) return;
+  const gameLoop = useCallback(() => {
+    if (!canvasRef.current) return;
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
+    
+    // Always draw background and player, even when paused
+    if (isPausedRef.current) {
+      drawBackground(ctx, gameState.current.speed, gameState.current.frame);
+      drawObstacles(ctx);
+      drawBosses(ctx);
+      drawCoins(ctx);
+      drawPlayer(ctx, gameState.current.player);
+      drawParticles(ctx);
+      drawFloatingTexts(ctx);
+      return;
+    }
 
     gameState.current.frame++;
     updatePlayer();
@@ -2320,19 +2543,16 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     drawPlayer(ctx, gameState.current.player);
     drawParticles(ctx);
     drawFloatingTexts(ctx);
-    if (isActive && !isPaused) reqRef.current = requestAnimationFrame(gameLoop);
-  };
+  }, [character]);
 
   // Load background image
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = 'anonymous'; // Allow cross-origin if needed
     img.onload = () => {
-      console.log('Background image loaded:', img.width, 'x', img.height);
       backgroundImageRef.current = img;
     };
     img.onerror = () => {
-      console.log('Background image failed to load, using programmatic background');
       // If image doesn't exist, continue with programmatic background
       backgroundImageRef.current = null;
     };
@@ -2348,12 +2568,10 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        console.log(`Obstacle image loaded: ${type}`);
         obstacleImagesRef.current[type] = img;
       };
       img.onerror = () => {
         // Image doesn't exist, will use programmatic drawing
-        console.log(`Obstacle image not found for ${type}, using programmatic drawing`);
       };
       // Try to load from public folder with naming convention: obstacle-{type}.png
       img.src = `/obstacle-${type}.png`;
@@ -2367,11 +2585,9 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
-      console.log(`Character face image loaded: ${faceImageKey}`);
       characterFaceImagesRef.current[faceImageKey] = img;
     };
     img.onerror = () => {
-      console.log(`Character face image not found for ${faceImageKey}, using drawn face`);
     };
     // Try to load from public/faces folder
     img.src = '/faces/character1-face.png';
@@ -2477,21 +2693,56 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
   useEffect(() => {
     if (isActive && sessionId > 0) {
         initGame();
+        // Draw initial frame
+        if (canvasRef.current) {
+            const ctx = canvasRef.current.getContext('2d');
+            if (ctx) {
+                drawBackground(ctx, gameState.current.speed, gameState.current.frame);
+                drawPlayer(ctx, gameState.current.player);
+            }
+        }
     }
-  }, [sessionId]);
+  }, [sessionId, character]);
+
+  // Update refs when props change
+  useEffect(() => {
+    isActiveRef.current = isActive;
+    isPausedRef.current = isPaused;
+  }, [isActive, isPaused]);
 
   useEffect(() => {
-    if (isActive && !isPaused) {
-        reqRef.current = requestAnimationFrame(gameLoop);
-    } else {
-        // Cancel animation frame when paused
+    // Cancel any existing loop first
+    if (reqRef.current) {
+        cancelAnimationFrame(reqRef.current);
+        reqRef.current = undefined;
+    }
+    
+    // Start game loop if active
+    if (isActive) {
+        const loop = () => {
+            if (!isActiveRef.current) {
+                // Stop loop if not active anymore
+                if (reqRef.current) {
+                    cancelAnimationFrame(reqRef.current);
+                    reqRef.current = undefined;
+                }
+                return;
+            }
+            gameLoop();
+            // Continue loop
+            reqRef.current = requestAnimationFrame(loop);
+        };
+        // Start the loop immediately
+        loop();
+    }
+    
+    return () => { 
         if (reqRef.current) {
             cancelAnimationFrame(reqRef.current);
             reqRef.current = undefined;
         }
-    }
-    return () => { if (reqRef.current) cancelAnimationFrame(reqRef.current); };
-  }, [isActive, isPaused]);
+    };
+  }, [isActive, isPaused, gameLoop]);
 
   return (
     <div ref={containerRef} className="w-full h-full flex items-center justify-center bg-slate-900" style={{ pointerEvents: 'none' }}>

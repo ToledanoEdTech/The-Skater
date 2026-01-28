@@ -8,7 +8,7 @@ export enum GameState {
 }
 
 export type TrickType = 'none' | 'kickflip' | 'superman' | '360';
-export type GadgetType = 'none' | 'rainbow_trail' | 'neon_board' | 'gold_chain';
+export type GadgetType = 'none' | 'rainbow_trail' | 'neon_board' | 'gold_chain' | 'fire_trail' | 'ice_board' | 'diamond_sparkles' | 'lightning_aura' | 'cosmic_wings' | 'neon_glow';
 
 export interface CharacterConfig {
   id: string;
@@ -45,7 +45,7 @@ export interface FloatingText {
 
 export interface Obstacle {
   id: number;
-  type: 'bench' | 'bush' | 'dog' | 'cat' | 'ramp-kicker' | 'ramp-quarter' | 'ramp-vert' | 'rail' | 'fire-hydrant' | 'bench-1' | 'bench-2' | 'trash-can';
+  type: 'bench' | 'bush' | 'dog' | 'cat' | 'ramp-kicker' | 'ramp-quarter' | 'ramp-vert' | 'rail' | 'fire-hydrant' | 'bench-1' | 'bench-2' | 'trash-can' | 'car';
   x: number;
   y: number;
   w: number;
@@ -97,7 +97,7 @@ export interface PlayerState {
     crashTimer: number;
 }
 
-export type MissionType = 'collect_coins' | 'trick_combo' | 'crash_distance' | 'grind_distance' | 'survive_time';
+export type MissionType = 'collect_coins' | 'trick_combo' | 'crash_distance' | 'grind_distance' | 'survive_time' | 'ramp_jumps';
 export interface Mission {
     id: string;
     type: MissionType;
