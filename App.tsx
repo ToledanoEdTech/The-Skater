@@ -47,35 +47,55 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('purchasedGadgets', JSON.stringify(purchasedGadgets)); }, [purchasedGadgets]);
   useEffect(() => { localStorage.setItem('equippedGadget', equippedGadget); }, [equippedGadget]);
 
-  // Audio State Management
+  // Initialize audio on mount
   useEffect(() => {
-    // Init audio once. Keeping this separate prevents race conditions where an old
-    // async callback starts menu music after we already entered PLAYING.
     audioService.init();
   }, []);
 
+  // Handle first user interaction to enable audio (browser autoplay policy)
   useEffect(() => {
-    // Audio routing based on current UI state.
-    // AudioService itself also guards against overlap (menu/game) as a fallback.
-    if (gameState === GameState.MENU) {
-      audioService.startMenuMusic();
-      return;
-    }
+    let hasInteracted = false;
+    const enableAudio = async () => {
+      if (!hasInteracted) {
+        hasInteracted = true;
+        await audioService.init();
+        // Start music based on current state after user interaction
+        if (gameState === GameState.MENU) {
+          audioService.startMenuMusic();
+        } else if (gameState === GameState.PLAYING) {
+          audioService.startMusic();
+        }
+      }
+    };
 
-    if (gameState === GameState.PAUSED) {
-      audioService.pauseMusic();
-      audioService.stopMenuMusic();
-      return;
-    }
+    const events = ['click', 'touchstart', 'keydown'];
+    events.forEach(event => {
+      document.addEventListener(event, enableAudio, { once: true, passive: true });
+    });
 
-    if (gameState === GameState.PLAYING) {
-      audioService.stopMenuMusic();
-      audioService.startMusic();
-      return;
-    }
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, enableAudio);
+      });
+    };
+  }, [gameState]);
 
-    // SHOP / LEADERBOARD / GAME_OVER: stop menu music, keep game music stopped/paused elsewhere.
-    audioService.stopMenuMusic();
+  // Audio State Management
+  useEffect(() => {
+    audioService.init().then(() => {
+      if (gameState === GameState.MENU) {
+        audioService.stopMusic();
+        audioService.startMenuMusic();
+      } else if (gameState === GameState.PAUSED) {
+        audioService.pauseMusic();
+        audioService.stopMenuMusic();
+      } else if (gameState === GameState.PLAYING) {
+        audioService.stopMenuMusic();
+        audioService.startMusic();
+      } else {
+        audioService.stopMenuMusic();
+      }
+    });
   }, [gameState]);
 
   // Input Handling

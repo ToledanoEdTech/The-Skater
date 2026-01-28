@@ -35,15 +35,29 @@ class AudioService {
     this.grindSynth.volume.value = -12;
 
     // Load background music files if they exist
-    this.menuMusic = new Audio('/menu-music.mp3');
-    this.menuMusic.loop = true;
-    this.menuMusic.volume = 0.5;
-    this.menuMusic.preload = 'auto';
+    try {
+      this.menuMusic = new Audio('/menu-music.mp3');
+      this.menuMusic.loop = true;
+      this.menuMusic.volume = 0.5;
+      this.menuMusic.preload = 'auto';
+      // Load the audio file
+      this.menuMusic.load();
+    } catch (err) {
+      console.error('Failed to create menu music:', err);
+      this.menuMusic = null;
+    }
     
-    this.gameMusic = new Audio('/game-music.mp3');
-    this.gameMusic.loop = true;
-    this.gameMusic.volume = 0.5;
-    this.gameMusic.preload = 'auto';
+    try {
+      this.gameMusic = new Audio('/game-music.mp3');
+      this.gameMusic.loop = true;
+      this.gameMusic.volume = 0.5;
+      this.gameMusic.preload = 'auto';
+      // Load the audio file
+      this.gameMusic.load();
+    } catch (err) {
+      console.error('Failed to create game music:', err);
+      this.gameMusic = null;
+    }
     
     // Enhanced Background Music - Hip-hop style with Jewish/Klezmer touches (fallback)
     const bass = new Tone.MembraneSynth().toDestination();
@@ -92,25 +106,33 @@ class AudioService {
   }
 
   startMusic() {
-    if (this.ready) {
-      // Never allow menu music to overlap with gameplay music
-      this.stopMenuMusic();
+    if (!this.ready) return;
+    
+    // Never allow menu music to overlap with gameplay music
+    this.stopMenuMusic();
 
-      // Try to use game music file first, fallback to Tone.js generated music
-      if (this.gameMusic) {
-        this.gameMusic.currentTime = 0;
-        this.gameMusic.play().catch(() => {
-          console.log('Game music file not found, using generated music');
-          // Fallback to generated music
-          if (this.bgmLoop) {
-            if (Tone.Transport.state !== 'started') Tone.Transport.start();
-            this.bgmLoop.start(0);
-          }
-        });
-      } else if (this.bgmLoop) {
-        if (Tone.Transport.state !== 'started') Tone.Transport.start();
-        this.bgmLoop.start(0);
+    // Try to use game music file first, fallback to Tone.js generated music
+    if (this.gameMusic) {
+      this.gameMusic.currentTime = 0;
+      const playPromise = this.gameMusic.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Game music started');
+          })
+          .catch(() => {
+            console.log('Game music file not found or autoplay blocked, using generated music');
+            // Fallback to generated music
+            if (this.bgmLoop) {
+              if (Tone.Transport.state !== 'started') Tone.Transport.start();
+              this.bgmLoop.start(0);
+            }
+          });
       }
+    } else if (this.bgmLoop) {
+      if (Tone.Transport.state !== 'started') Tone.Transport.start();
+      this.bgmLoop.start(0);
     }
   }
 
@@ -153,14 +175,24 @@ class AudioService {
   }
   
   startMenuMusic() {
-    if (this.ready && this.menuMusic) {
-      // Never allow gameplay music to overlap with menu music
-      this.stopMusic();
+    if (!this.ready) return;
+    
+    // Never allow gameplay music to overlap with menu music
+    this.stopMusic();
 
+    if (this.menuMusic) {
       this.menuMusic.currentTime = 0;
-      this.menuMusic.play().catch((err) => {
-        console.log('Menu music play failed:', err);
-      });
+      const playPromise = this.menuMusic.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Menu music started');
+          })
+          .catch((err) => {
+            console.log('Menu music play failed (autoplay blocked):', err);
+          });
+      }
     }
   }
   
