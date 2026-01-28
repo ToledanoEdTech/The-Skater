@@ -79,8 +79,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
 
   return (
     <div ref={canvasRef} className="absolute inset-0 p-2 sm:p-3 md:p-4 lg:p-8 flex flex-col justify-between z-10" style={{ pointerEvents: 'none' }}>
-      {/* Mobile Tap Area for Jump - Large invisible area in center (only on mobile) */}
-      {/* This allows tapping anywhere on screen to jump, except on buttons and UI elements */}
+      {/* Mobile Tap Area for Jump - Only on tap, not on scroll */}
       {(isMobile || window.innerWidth < 768) && (
       <div 
         className="absolute pointer-events-auto"
@@ -89,7 +88,7 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
           bottom: '35%', 
           left: '0%', 
           right: '0%',
-          touchAction: 'manipulation',
+          touchAction: 'pan-y pan-x', // Allow scrolling
           WebkitTapHighlightColor: 'transparent',
           zIndex: 5,
           display: 'block'
@@ -100,10 +99,33 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
           const isButton = target.closest('button');
           const isUI = target.closest('.bg-slate-900') || target.closest('.bg-gradient-to-br') || target.closest('.bg-gradient-to-b') || target.closest('.bg-slate-800');
           
+          // Only handle tap, not scroll - let scrolling work naturally
+          if (!isButton && !isUI && target === e.currentTarget && e.touches.length === 1) {
+            // Store touch start for tap detection
+            const touch = e.touches[0];
+            (e.currentTarget as any).touchStart = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+          }
+        }}
+        onTouchEnd={(e) => {
+          const target = e.target as HTMLElement;
+          const isButton = target.closest('button');
+          const isUI = target.closest('.bg-slate-900') || target.closest('.bg-gradient-to-br') || target.closest('.bg-gradient-to-b') || target.closest('.bg-slate-800');
+          
           if (!isButton && !isUI && target === e.currentTarget) {
-            e.preventDefault();
-            e.stopPropagation();
-            onJump();
+            const touchStart = (e.currentTarget as any).touchStart;
+            if (touchStart) {
+              const touch = e.changedTouches[0];
+              const deltaX = Math.abs(touch.clientX - touchStart.x);
+              const deltaY = Math.abs(touch.clientY - touchStart.y);
+              const deltaTime = Date.now() - touchStart.time;
+              
+              // Only trigger jump if it's a tap (small movement, short time), not a scroll
+              if (deltaX < 10 && deltaY < 10 && deltaTime < 300) {
+                e.preventDefault();
+                e.stopPropagation();
+                onJump();
+              }
+            }
           }
         }}
         onClick={(e) => {
@@ -161,8 +183,8 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
         </div>
       )}
 
-      {/* Missions Panel - Better positioned and styled */}
-      {missions.length > 0 && (
+      {/* Missions Panel - Hidden on mobile to avoid blocking game */}
+      {missions.length > 0 && !isMobile && window.innerWidth >= 768 && (
         <div className="absolute top-20 sm:top-16 md:top-14 right-2 sm:right-3 md:right-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-lg p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl border-2 sm:border-3 border-amber-500/50 shadow-2xl max-w-[260px] sm:max-w-[300px] md:max-w-[340px]">
           <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 pb-2 sm:pb-2.5 border-b border-amber-500/30">
             <i className="fas fa-tasks text-amber-400 text-base sm:text-lg md:text-xl"></i>

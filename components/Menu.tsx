@@ -131,7 +131,7 @@ const Menu: React.FC<MenuProps> = ({ onStart, onOpenShop, onOpenLeaderboard, wal
   const selectedChar = CHARACTERS.find(c => c.id === selectedCharId) || CHARACTERS[0];
 
   return (
-    <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md flex flex-col items-center justify-center p-1 sm:p-2 md:p-3 lg:p-4 text-white z-20 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}>
+    <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md flex flex-col items-center justify-center p-1 sm:p-2 md:p-3 lg:p-4 text-white z-20 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y', overflowY: 'scroll' }}>
       
       {/* Logo - Only in Menu */}
       <div className="absolute bottom-2 sm:bottom-3 md:bottom-4 right-2 sm:right-3 md:right-4 pointer-events-none z-30">

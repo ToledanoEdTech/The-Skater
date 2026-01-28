@@ -21,7 +21,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onClose }) => {
   }, []);
 
   return (
-    <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md flex flex-col items-center justify-center p-1 sm:p-2 md:p-3 lg:p-4 z-30 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}>
+    <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md flex flex-col items-center justify-center p-1 sm:p-2 md:p-3 lg:p-4 z-30 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y', overflowY: 'scroll' }}>
       <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-amber-400 mb-2 sm:mb-3 md:mb-4 lg:mb-6 text-center px-2"><i className="fas fa-trophy mr-1 sm:mr-2"></i> טבלת אלופים</h2>
       
       <div className="bg-slate-800/50 border-2 border-slate-700 w-full max-w-2xl sm:max-w-3xl md:max-w-4xl h-[45vh] sm:h-[50vh] md:h-[55vh] lg:h-[60vh] rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden flex flex-col mx-2">

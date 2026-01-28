@@ -2502,7 +2502,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
           className="bg-slate-900 shadow-2xl"
           style={{
             imageRendering: 'auto',
-            touchAction: 'none',
+            touchAction: 'pan-x pan-y', // Allow scrolling on canvas too
             WebkitTouchCallout: 'none',
             WebkitUserSelect: 'none',
             userSelect: 'none',
