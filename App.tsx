@@ -168,13 +168,14 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden" style={{ width: '100vw', height: '100vh' }}>
+    <div className="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden" style={{ width: '100vw', height: '100dvh' }}>
       <OrientationCheck />
       <div className="relative w-full h-full shadow-2xl overflow-hidden bg-slate-800"
            style={{
              width: '100%',
-             height: '100%',
-             position: 'relative'
+             height: '100dvh',
+             position: 'relative',
+             touchAction: 'none'
            }}>
         
         <GameEngine

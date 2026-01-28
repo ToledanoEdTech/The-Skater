@@ -2377,7 +2377,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     img.src = '/faces/character1-face.png';
   }, []);
 
-  // Resize canvas to fit container while maintaining aspect ratio
+  // Resize canvas to fit container while maintaining aspect ratio - Optimized for mobile
   useEffect(() => {
     const resizeCanvas = () => {
       if (!canvasRef.current || !containerRef.current) return;
@@ -2385,10 +2385,16 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
       const container = containerRef.current;
       const canvas = canvasRef.current;
       
-      // Use getBoundingClientRect for accurate dimensions
+      // Use getBoundingClientRect for accurate dimensions (accounts for mobile browser UI)
       const containerRect = container.getBoundingClientRect();
-      const containerWidth = containerRect.width;
-      const containerHeight = containerRect.height;
+      let containerWidth = containerRect.width;
+      let containerHeight = containerRect.height;
+      
+      // For mobile, use window dimensions as fallback if container is 0
+      if (containerWidth === 0 || containerHeight === 0) {
+        containerWidth = window.innerWidth;
+        containerHeight = window.innerHeight;
+      }
       
       if (containerWidth === 0 || containerHeight === 0) return;
       
@@ -2397,14 +2403,24 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
       let displayWidth = containerWidth;
       let displayHeight = containerWidth / aspectRatio;
       
+      // If height exceeds container, scale by height instead
       if (displayHeight > containerHeight) {
         displayHeight = containerHeight;
         displayWidth = containerHeight * aspectRatio;
       }
       
-      // Set canvas display size
+      // Ensure we don't exceed container bounds
+      if (displayWidth > containerWidth) {
+        displayWidth = containerWidth;
+        displayHeight = containerWidth / aspectRatio;
+      }
+      
+      // Set canvas display size with better mobile handling
       canvas.style.width = `${displayWidth}px`;
       canvas.style.height = `${displayHeight}px`;
+      canvas.style.maxWidth = '100%';
+      canvas.style.maxHeight = '100%';
+      canvas.style.objectFit = 'contain';
     };
     
     // Resize immediately
@@ -2427,16 +2443,33 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>(({
     
     // Also resize after delays to handle mobile browser UI changes
     const timeoutId1 = setTimeout(resizeCanvas, 100);
-    const timeoutId2 = setTimeout(resizeCanvas, 500);
+    const timeoutId2 = setTimeout(resizeCanvas, 300);
+    const timeoutId3 = setTimeout(resizeCanvas, 500);
+    const timeoutId4 = setTimeout(resizeCanvas, 1000);
+    
+    // Handle mobile viewport changes (address bar hide/show)
+    let lastHeight = window.innerHeight;
+    const handleViewportChange = () => {
+      const currentHeight = window.innerHeight;
+      if (Math.abs(currentHeight - lastHeight) > 50) {
+        lastHeight = currentHeight;
+        setTimeout(resizeCanvas, 100);
+      }
+    };
+    
+    window.addEventListener('resize', handleViewportChange);
     
     return () => {
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
       window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('resize', handleViewportChange);
       window.removeEventListener('orientationchange', resizeCanvas);
       clearTimeout(timeoutId1);
       clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      clearTimeout(timeoutId4);
     };
   }, []);
 
