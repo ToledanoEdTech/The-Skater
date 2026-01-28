@@ -18,39 +18,86 @@ interface HUDProps {
 const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, missions = [], currentStage, onJump, onTrick, onSlide }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  // Gesture handling for mobile
+  // Gesture handling for mobile - Tap to jump (backup handler)
   useEffect(() => {
-    const handleTouchStart = (e: TouchEvent) => {
-      gestureService.handleTouchStart(e);
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      gestureService.handleTouchEnd(e, {
-        onSwipeUp: () => onJump(),
-        onSwipeDown: () => onSlide?.(),
-        onTap: () => {
-          // Tap anywhere on screen performs a trick
-          if (Math.random() > 0.5) {
-            onTrick('kickflip');
-          } else {
-            onTrick('360');
-          }
+    // Only add backup handler for mobile, buttons handle their own events
+    if (window.innerWidth >= 768) {
+      const handleTouchStart = (e: TouchEvent) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('button')) {
+          return;
         }
-      });
-    };
+        gestureService.handleTouchStart(e);
+      };
 
-    const element = canvasRef.current || document.body;
-    element.addEventListener('touchstart', handleTouchStart, { passive: true });
-    element.addEventListener('touchend', handleTouchEnd, { passive: true });
+      const handleTouchEnd = (e: TouchEvent) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('button')) {
+          return;
+        }
+        gestureService.handleTouchEnd(e, {
+          onSwipeUp: () => onJump(),
+          onSwipeDown: () => onSlide?.(),
+          onTap: () => {
+            if (Math.random() > 0.5) {
+              onTrick('kickflip');
+            } else {
+              onTrick('360');
+            }
+          }
+        });
+      };
 
-    return () => {
-      element.removeEventListener('touchstart', handleTouchStart);
-      element.removeEventListener('touchend', handleTouchEnd);
-    };
+      const element = canvasRef.current || document.body;
+      element.addEventListener('touchstart', handleTouchStart, { passive: true });
+      element.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+      return () => {
+        element.removeEventListener('touchstart', handleTouchStart);
+        element.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
   }, [onJump, onTrick, onSlide]);
 
   return (
     <div ref={canvasRef} className="absolute inset-0 pointer-events-none p-2 sm:p-3 md:p-4 lg:p-8 flex flex-col justify-between z-10">
+      {/* Mobile Tap Area for Jump - Large invisible area in center (only on mobile) */}
+      {/* This allows tapping anywhere on screen to jump, except on buttons and UI elements */}
+      <div 
+        className="md:hidden absolute pointer-events-auto"
+        style={{ 
+          top: '10%', 
+          bottom: '35%', 
+          left: '0%', 
+          right: '0%',
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent',
+          zIndex: 1
+        }}
+        onTouchStart={(e) => {
+          // Don't trigger if touching a button or UI element
+          const target = e.target as HTMLElement;
+          const isButton = target.closest('button');
+          const isUI = target.closest('.bg-slate-900') || target.closest('.bg-gradient-to-br') || target.closest('.bg-gradient-to-b');
+          
+          if (!isButton && !isUI) {
+            e.preventDefault();
+            e.stopPropagation();
+            onJump();
+          }
+        }}
+        onClick={(e) => {
+          const target = e.target as HTMLElement;
+          const isButton = target.closest('button');
+          const isUI = target.closest('.bg-slate-900') || target.closest('.bg-gradient-to-br') || target.closest('.bg-gradient-to-b');
+          
+          if (!isButton && !isUI) {
+            e.preventDefault();
+            e.stopPropagation();
+            onJump();
+          }
+        }}
+      />
       
       {/* Top Bar */}
       <div className="flex justify-between items-start flex-wrap gap-2 sm:gap-3">
@@ -128,55 +175,89 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
       )}
 
       {/* Mobile Controls - Arcade Style - Much Larger for Mobile */}
-      <div className="pointer-events-auto md:hidden flex justify-between items-end mt-auto px-3 sm:px-4 pb-3 sm:pb-4 md:pb-6 gap-3 sm:gap-4">
-        {/* Jump Button - Larger */}
+      <div className="pointer-events-auto md:hidden flex justify-between items-end mt-auto px-2 sm:px-3 md:px-4 pb-2 sm:pb-3 md:pb-4 gap-2 sm:gap-3 md:gap-4 relative z-50">
+        {/* Jump Button - Much Larger and More Prominent */}
         <button 
-            onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); onJump(); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onJump(); }}
+            onTouchStart={(e) => { 
+              e.preventDefault(); 
+              e.stopPropagation(); 
+              onJump(); 
+            }}
             onTouchEnd={(e) => { e.preventDefault(); }}
-            className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-b from-slate-600 to-slate-800 border-b-6 sm:border-b-8 md:border-b-10 border-slate-900 shadow-2xl active:border-b-0 active:translate-y-2 sm:active:translate-y-3 transition-all flex items-center justify-center group touch-manipulation"
-            style={{ WebkitTapHighlightColor: 'transparent', minWidth: '96px', minHeight: '96px' }}
+            onMouseDown={(e) => { e.preventDefault(); }}
+            className="rounded-full bg-gradient-to-b from-emerald-500 to-green-600 border-b-6 sm:border-b-8 border-green-800 shadow-2xl active:border-b-0 active:translate-y-2 sm:active:translate-y-3 transition-all flex items-center justify-center group touch-manipulation relative"
+            style={{ 
+              WebkitTapHighlightColor: 'transparent', 
+              width: '110px', 
+              height: '110px', 
+              minWidth: '110px', 
+              minHeight: '110px',
+              WebkitUserSelect: 'none',
+              userSelect: 'none',
+              cursor: 'pointer',
+              zIndex: 100
+            }}
         >
-            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full bg-slate-700 border-3 sm:border-4 md:border-5 border-slate-500 flex items-center justify-center group-active:bg-slate-600">
-               <i className="fas fa-arrow-up text-4xl sm:text-5xl md:text-6xl text-white drop-shadow-md"></i>
+            <div className="rounded-full bg-green-700 border-4 sm:border-5 border-green-900 flex items-center justify-center group-active:bg-green-600 transition-all" style={{ width: '100px', height: '100px' }}>
+               <i className="fas fa-arrow-up text-5xl sm:text-6xl text-white drop-shadow-md"></i>
             </div>
         </button>
 
-        {/* Trick Buttons - Larger */}
-        <div className="flex gap-3 sm:gap-4 md:gap-5">
+        {/* Trick Buttons - Much Larger */}
+        <div className="flex gap-2 sm:gap-3 md:gap-4 relative z-50">
             <button 
-                onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('kickflip'); }} 
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('kickflip'); }}
+                onTouchStart={(e) => { 
+                  e.preventDefault(); 
+                  e.stopPropagation(); 
+                  onTrick('kickflip'); 
+                }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1.5 sm:gap-2 group touch-manipulation"
-                style={{ WebkitTapHighlightColor: 'transparent' }}
+                onMouseDown={(e) => { e.preventDefault(); }}
+                className="flex flex-col items-center gap-1.5 sm:gap-2 group touch-manipulation relative"
+                style={{ WebkitTapHighlightColor: 'transparent', WebkitUserSelect: 'none', userSelect: 'none', cursor: 'pointer', zIndex: 100 }}
             >
-                <div className="rounded-full bg-gradient-to-b from-blue-500 to-blue-700 border-b-4 sm:border-b-5 md:border-b-6 border-blue-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '72px', height: '72px', minWidth: '72px', minHeight: '72px' }}>
-                    <i className="fas fa-undo text-2xl sm:text-3xl md:text-4xl text-white drop-shadow"></i>
+                <div className="rounded-full bg-gradient-to-b from-blue-500 to-blue-700 border-b-5 sm:border-b-6 border-blue-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '90px', height: '90px', minWidth: '90px', minHeight: '90px' }}>
+                    <i className="fas fa-undo text-3xl sm:text-4xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-xs sm:text-sm md:text-base font-bold text-blue-300 drop-shadow-md tracking-wider">FLIP</span>
+                <span className="text-sm sm:text-base font-bold text-blue-300 drop-shadow-md tracking-wider">FLIP</span>
             </button>
             
             <button 
-                onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('superman'); }} 
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('superman'); }}
+                onTouchStart={(e) => { 
+                  e.preventDefault(); 
+                  e.stopPropagation(); 
+                  onTrick('superman'); 
+                }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1.5 sm:gap-2 group touch-manipulation"
-                style={{ WebkitTapHighlightColor: 'transparent' }}
+                onMouseDown={(e) => { e.preventDefault(); }}
+                className="flex flex-col items-center gap-1.5 sm:gap-2 group touch-manipulation relative"
+                style={{ WebkitTapHighlightColor: 'transparent', WebkitUserSelect: 'none', userSelect: 'none', cursor: 'pointer', zIndex: 100 }}
             >
-                <div className="rounded-full bg-gradient-to-b from-red-500 to-red-700 border-b-4 sm:border-b-5 md:border-b-6 border-red-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '72px', height: '72px', minWidth: '72px', minHeight: '72px' }}>
-                    <i className="fas fa-plane text-2xl sm:text-3xl md:text-4xl text-white drop-shadow"></i>
+                <div className="rounded-full bg-gradient-to-b from-red-500 to-red-700 border-b-5 sm:border-b-6 border-red-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '90px', height: '90px', minWidth: '90px', minHeight: '90px' }}>
+                    <i className="fas fa-plane text-3xl sm:text-4xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-xs sm:text-sm md:text-base font-bold text-red-300 drop-shadow-md tracking-wider">SUPER</span>
+                <span className="text-sm sm:text-base font-bold text-red-300 drop-shadow-md tracking-wider">SUPER</span>
             </button>
             
             <button 
-                onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('360'); }} 
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTrick('360'); }}
+                onTouchStart={(e) => { 
+                  e.preventDefault(); 
+                  e.stopPropagation(); 
+                  onTrick('360'); 
+                }} 
                 onTouchEnd={(e) => { e.preventDefault(); }}
-                className="flex flex-col items-center gap-1.5 sm:gap-2 group touch-manipulation"
-                style={{ WebkitTapHighlightColor: 'transparent' }}
+                onMouseDown={(e) => { e.preventDefault(); }}
+                className="flex flex-col items-center gap-1.5 sm:gap-2 group touch-manipulation relative"
+                style={{ WebkitTapHighlightColor: 'transparent', WebkitUserSelect: 'none', userSelect: 'none', cursor: 'pointer', zIndex: 100 }}
             >
-                <div className="rounded-full bg-gradient-to-b from-amber-500 to-amber-700 border-b-4 sm:border-b-5 md:border-b-6 border-amber-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '72px', height: '72px', minWidth: '72px', minHeight: '72px' }}>
-                    <i className="fas fa-sync text-2xl sm:text-3xl md:text-4xl text-white drop-shadow"></i>
+                <div className="rounded-full bg-gradient-to-b from-amber-500 to-amber-700 border-b-5 sm:border-b-6 border-amber-900 shadow-xl active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center" style={{ width: '90px', height: '90px', minWidth: '90px', minHeight: '90px' }}>
+                    <i className="fas fa-sync text-3xl sm:text-4xl text-white drop-shadow"></i>
                 </div>
-                <span className="text-xs sm:text-sm md:text-base font-bold text-amber-300 drop-shadow-md tracking-wider">360</span>
+                <span className="text-sm sm:text-base font-bold text-amber-300 drop-shadow-md tracking-wider">360</span>
             </button>
         </div>
       </div>
