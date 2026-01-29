@@ -95,9 +95,11 @@ export interface PlayerState {
     flashCounter: number;
     crashed: boolean;
     crashTimer: number;
+    isCarryingLostObject?: boolean;
+    carryingObjectType?: 'school_bag' | 'dubi' | 'book';
 }
 
-export type MissionType = 'collect_coins' | 'trick_combo' | 'crash_distance' | 'grind_distance' | 'survive_time' | 'ramp_jumps';
+export type MissionType = 'collect_coins' | 'trick_combo' | 'crash_distance' | 'grind_distance' | 'survive_time' | 'ramp_jumps' | 'return_lost_objects';
 export interface Mission {
     id: string;
     type: MissionType;
@@ -128,4 +130,25 @@ export interface Boss {
     health: number;
     markedForDeletion: boolean;
     animFrame: number;
+}
+
+export interface LostObject {
+    id: number;
+    x: number;
+    y: number;
+    spriteType: 'school_bag' | 'dubi' | 'book'; // Types of lost objects
+    markedForDeletion: boolean;
+    rotation: number;
+}
+
+export type OwnerNPCState = 'waiting' | 'happy';
+
+export interface OwnerNPC {
+    id: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    state: OwnerNPCState;
+    markedForDeletion: boolean;
 }

@@ -3,7 +3,7 @@ import {
   CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, GRAVITY, JUMP_FORCE, BASE_SPEED, MAX_SPEED 
 } from '../constants';
 import { 
-  CharacterConfig, Obstacle, Coin, Particle, FloatingText, PowerUpState, TrickType, PlayerState, GadgetType, Boss, Mission
+  CharacterConfig, Obstacle, Coin, Particle, FloatingText, PowerUpState, TrickType, PlayerState, GadgetType, Boss, Mission, LostObject, OwnerNPC
 } from '../types';
 import { audioService } from '../services/audioService';
 import { missionService } from '../services/missionService';
@@ -43,6 +43,8 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
   const obstacleImagesRef = useRef<Record<string, HTMLImageElement>>({});
   const characterFaceImagesRef = useRef<Record<string, HTMLImageElement>>({});
+  const lostObjectImagesRef = useRef<Record<string, HTMLImageElement>>({});
+  const ownerNPCImagesRef = useRef<Record<string, HTMLImageElement>>({});
   
   // Mutable Game State
   const gameState = useRef({
@@ -80,6 +82,8 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
       crashTimer: 0,
       sliding: false,
       slideTimer: 0,
+      isCarryingLostObject: false,
+      carryingObjectType: undefined,
     } as PlayerState & { grindDistance: number; sliding: boolean; slideTimer: number },
 
     obstacles: [] as Obstacle[],
@@ -88,6 +92,8 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
     floatingTexts: [] as FloatingText[],
     powerupTimers: { shield: 0, magnet: 0, double: 0, slow: 0 },
     bosses: [] as Boss[],
+    lostObjects: [] as LostObject[],
+    ownerNPCs: [] as OwnerNPC[],
     startTime: Date.now()
   });
 
@@ -160,7 +166,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
                 const reward = missionService.updateMissionByType('trick_combo', 3);
                 if (reward > 0 && onReward) {
                     onReward(reward);
-                    spawnFloatingText(`משימה הושלמה! +${reward}₪`, p.x, p.y - 40, '#00ff00');
+                    spawnFloatingText(`משימה הושלמה! +${reward}₪`, CANVAS_WIDTH / 2, 180, '#00ff00');
                 }
                 gameState.current.supermanCombo = 0; // Reset after completing
             }
@@ -256,11 +262,15 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
     st.player.grindDistance = 0;
     st.player.sliding = false;
     st.player.slideTimer = 0;
+    st.player.isCarryingLostObject = false;
+    st.player.carryingObjectType = undefined;
     st.obstacles = [];
     st.coinsArr = [];
     st.particles = [];
     st.floatingTexts = [];
     st.bosses = [];
+    st.lostObjects = [];
+    st.ownerNPCs = [];
     st.powerupTimers = { shield: 0, magnet: 0, double: 0, slow: 0 };
     st.startTime = Date.now();
     
@@ -1461,6 +1471,82 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
         ctx.fillRect(-15, -24, 30, 4);
     }
 
+    // Visual indicator for carrying lost object (object icon above player)
+    if (p.isCarryingLostObject && p.carryingObjectType) {
+        ctx.save();
+        // Draw indicator above player - more prominent
+        const indicatorX = 0;
+        const indicatorY = -p.height / 2 - 35;
+        ctx.translate(indicatorX, indicatorY);
+        
+        // Add floating animation
+        const floatOffset = Math.sin(gameState.current.frame * 0.15) * 3;
+        ctx.translate(0, floatOffset);
+        
+        // Draw the object image based on what's being carried
+        const objectImg = lostObjectImagesRef.current[p.carryingObjectType];
+        
+        if (objectImg) {
+            // Draw shadow
+            ctx.save();
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.ellipse(0, 25, 20, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            ctx.restore();
+            
+            // Draw object with glow
+            let glowColor = '#3498db';
+            if (p.carryingObjectType === 'school_bag') {
+                glowColor = '#3498db'; // Blue for bag
+            } else if (p.carryingObjectType === 'dubi') {
+                glowColor = '#e74c3c'; // Red for dubi
+            } else if (p.carryingObjectType === 'book') {
+                glowColor = '#9b59b6'; // Purple for book
+            }
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 15;
+            const iconSize = 40;
+            ctx.drawImage(objectImg, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
+            ctx.shadowBlur = 0;
+        } else {
+            // Fallback: draw a prominent object icon
+            let glowColor = '#3498db';
+            let icon = '🎒';
+            if (p.carryingObjectType === 'school_bag') {
+                glowColor = '#3498db';
+                icon = '🎒';
+            } else if (p.carryingObjectType === 'dubi') {
+                glowColor = '#e74c3c';
+                icon = '🧸';
+            } else if (p.carryingObjectType === 'book') {
+                glowColor = '#9b59b6';
+                icon = '📚';
+            }
+            ctx.fillStyle = glowColor;
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(0, 0, 18, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = glowColor;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Draw object icon
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(icon, 0, 0);
+        }
+        
+        ctx.restore();
+    }
+
     ctx.restore();
   };
 
@@ -1885,7 +1971,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
                 const reward = missionService.updateMissionByType('grind_distance', 200);
                 if (reward > 0 && onReward) {
                     onReward(reward);
-                    spawnFloatingText(`משימה הושלמה! +${reward}₪`, p.x, p.y - 40, '#00ff00');
+                    spawnFloatingText(`משימה הושלמה! +${reward}₪`, CANVAS_WIDTH / 2, 180, '#00ff00');
                 }
                 p.grindDistance = 0; // Reset
             }
@@ -1932,7 +2018,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
            if (onStageChange) {
                onStageChange(currentStage.name);
            }
-           spawnFloatingText(`אזור חדש: ${currentStage.name}`, p.x, p.y - 60, '#fbbf24');
+           spawnFloatingText(`אזור חדש: ${currentStage.name}`, CANVAS_WIDTH / 2, 180, '#fbbf24');
        }
        
        // Update missions
@@ -2084,13 +2170,141 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
               const reward = missionService.updateMissionByType('collect_coins', 1);
               if (reward > 0 && onReward) {
                   onReward(reward);
-                  spawnFloatingText(`משימה הושלמה! +${reward}₪`, p.x, p.y - 40, '#00ff00');
+                  spawnFloatingText(`משימה הושלמה! +${reward}₪`, CANVAS_WIDTH / 2, 120, '#00ff00');
               }
               
               onScoreUpdate(st.score, st.coins, st.combo);
           }
       });
       st.coinsArr = st.coinsArr.filter(c => !c.markedForDeletion);
+  };
+
+  const updateLostObjects = () => {
+      const st = gameState.current;
+      const p = st.player;
+      
+      // Spawn lost objects (bag, dubi, or book) more frequently - multiple objects available
+      // Spawn more often so there are always objects to collect
+      if (!p.isCarryingLostObject && st.frame % 90 === 0 && Math.random() > 0.3) {
+          const y = GROUND_Y - 150 - Math.random() * 150;
+          // Randomly choose between bag, dubi, and book
+          const rand = Math.random();
+          let objectType: LostObject['spriteType'];
+          if (rand < 0.33) {
+              objectType = 'school_bag';
+          } else if (rand < 0.66) {
+              objectType = 'dubi';
+          } else {
+              objectType = 'book';
+          }
+          st.lostObjects.push({
+              id: Date.now() + Math.random(),
+              x: CANVAS_WIDTH + 50,
+              y,
+              spriteType: objectType,
+              markedForDeletion: false,
+              rotation: 0
+          });
+      }
+      
+      st.lostObjects.forEach(obj => {
+          obj.x -= st.speed;
+          obj.rotation += 0.05;
+          if (obj.x < -50) obj.markedForDeletion = true;
+          
+          // Check collision with player (only if player is not already carrying an object)
+          if (!p.isCarryingLostObject) {
+              const cx = p.x + p.width / 2;
+              const cy = p.y + p.height / 2;
+              const dx = cx - obj.x;
+              const dy = cy - obj.y;
+              const pickupRadius = 90;
+              
+              if ((dx * dx + dy * dy) <= (pickupRadius * pickupRadius)) {
+                  obj.markedForDeletion = true;
+                  p.isCarryingLostObject = true;
+                  p.carryingObjectType = obj.spriteType; // Save which object type is being carried
+                  audioService.playCoin(); // Use coin sound for pickup
+                  spawnParticles(obj.x, obj.y, '#3498db', 'sparkle', 8);
+                  spawnFloatingText("אבידה נמצאה!", obj.x, obj.y - 30, '#3498db');
+              }
+          }
+      });
+      
+      st.lostObjects = st.lostObjects.filter(obj => !obj.markedForDeletion);
+  };
+
+  const updateOwnerNPCs = () => {
+      const st = gameState.current;
+      const p = st.player;
+      
+      // Spawn owner NPCs ONLY when player is carrying a lost object
+      // This ensures NPCs appear only when there's something to return
+      if (p.isCarryingLostObject && st.frame % 120 === 0 && Math.random() > 0.4) {
+          // Check if there's already a waiting NPC on screen
+          const hasWaitingNPC = st.ownerNPCs.some(npc => npc.state === 'waiting' && npc.x > -100 && npc.x < CANVAS_WIDTH + 100);
+          
+          // Only spawn if no waiting NPC is already on screen
+          if (!hasWaitingNPC) {
+              st.ownerNPCs.push({
+                  id: Date.now() + Math.random(),
+                  x: CANVAS_WIDTH + 50,
+                  y: GROUND_Y - 100, // NPC stands on ground (adjusted for child size)
+                  w: 80, // Wider for child image
+                  h: 100, // Height for child image
+                  state: 'waiting',
+                  markedForDeletion: false
+              });
+          }
+      }
+      
+      st.ownerNPCs.forEach(npc => {
+          npc.x -= st.speed;
+          if (npc.x < -100) npc.markedForDeletion = true;
+          
+          // Check collision with player
+          if (npc.state === 'waiting' && p.isCarryingLostObject) {
+              const cx = p.x + p.width / 2;
+              const cy = p.y + p.height / 2;
+              const nx = npc.x + npc.w / 2;
+              const ny = npc.y + npc.h / 2;
+              const dx = cx - nx;
+              const dy = cy - ny;
+              const interactionRadius = 100;
+              
+              if ((dx * dx + dy * dy) <= (interactionRadius * interactionRadius)) {
+                  // Return the lost object
+                  npc.state = 'happy';
+                  p.isCarryingLostObject = false;
+                  p.carryingObjectType = undefined;
+                  
+                  // Award double points
+                  const baseScore = 200;
+                  const doubleScore = baseScore * 2;
+                  st.score += doubleScore;
+                  
+                  // Update mission: return lost objects
+                  const reward = missionService.updateMissionByType('return_lost_objects', 1);
+                  if (reward > 0 && onReward) {
+                      onReward(reward);
+                      spawnFloatingText(`משימה הושלמה! +${reward}₪`, CANVAS_WIDTH / 2, 120, '#00ff00');
+                  }
+                  
+                  // Update mission display
+                  if (onMissionUpdate) {
+                      onMissionUpdate(missionService.getMissions());
+                  }
+                  
+                  audioService.playCoin(); // Use coin sound for success
+                  spawnParticles(npc.x + npc.w / 2, npc.y + npc.h / 2, '#00ff00', 'sparkle', 15);
+                  spawnFloatingText(`השבת אבידה! +${doubleScore}`, npc.x + npc.w / 2, npc.y - 40, '#00ff00');
+                  
+                  onScoreUpdate(st.score, st.coins, st.combo);
+              }
+          }
+      });
+      
+      st.ownerNPCs = st.ownerNPCs.filter(npc => !npc.markedForDeletion);
   };
   
   const updateParticles = () => {
@@ -2108,7 +2322,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
           const bossType: 'police_car' = 'police_car'; // Only police car, no rival skater
           st.bosses.push(bossService.spawnBoss(bossType, st.distance));
           st.lastBossDistance = st.distance;
-          spawnFloatingText('בוס מגיע!', p.x, p.y - 60, '#ff0000');
+          spawnFloatingText('בוס מגיע!', CANVAS_WIDTH / 2, 180, '#ff0000');
       }
       
       // Update bosses
@@ -2124,7 +2338,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
                   if (boss.health <= 0) {
                       boss.markedForDeletion = true;
                       st.score += 1000;
-                      spawnFloatingText('בוס הובס!', p.x, p.y - 40, '#00ff00');
+                      spawnFloatingText('בוס הובס!', CANVAS_WIDTH / 2, 180, '#00ff00');
                       if (onReward) onReward(500);
                   }
               } else if (!p.crashed) {
@@ -2495,6 +2709,186 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
       });
   };
 
+  const drawLostObjects = (ctx: CanvasRenderingContext2D) => {
+      const st = gameState.current;
+      st.lostObjects.forEach(obj => {
+          ctx.save();
+          ctx.translate(obj.x, obj.y);
+          
+          // Add a subtle floating animation
+          const floatOffset = Math.sin(st.frame * 0.1) * 5;
+          ctx.translate(0, floatOffset);
+          
+          // Add a slight rotation for visual interest
+          ctx.rotate(obj.rotation * 0.3);
+          
+              // Try to draw object sprite image if available - make it prominent
+          const img = lostObjectImagesRef.current[obj.spriteType];
+          if (img) {
+              // Draw shadow for depth
+              ctx.save();
+              ctx.globalAlpha = 0.3;
+              ctx.fillStyle = '#000';
+              ctx.beginPath();
+              ctx.ellipse(0, 50, 40, 8, 0, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.globalAlpha = 1;
+              ctx.restore();
+              
+              // Draw the object image - make it larger and more prominent
+              const objectSize = 80; // Larger size for prominence
+              ctx.drawImage(img, -objectSize / 2, -objectSize / 2, objectSize, objectSize);
+              
+              // Add a glow effect to make it stand out
+              let glowColor = '#3498db';
+              if (obj.spriteType === 'school_bag') {
+                  glowColor = '#3498db'; // Blue for bag
+              } else if (obj.spriteType === 'dubi') {
+                  glowColor = '#e74c3c'; // Red for dubi
+              } else if (obj.spriteType === 'book') {
+                  glowColor = '#9b59b6'; // Purple for book
+              }
+              ctx.shadowColor = glowColor;
+              ctx.shadowBlur = 20;
+              ctx.drawImage(img, -objectSize / 2, -objectSize / 2, objectSize, objectSize);
+              ctx.shadowBlur = 0;
+          } else {
+              // Fallback: draw a prominent object representation
+              let glowColor = '#3498db';
+              let icon = '🎒';
+              if (obj.spriteType === 'school_bag') {
+                  glowColor = '#3498db';
+                  icon = '🎒';
+              } else if (obj.spriteType === 'dubi') {
+                  glowColor = '#e74c3c';
+                  icon = '🧸';
+              } else if (obj.spriteType === 'book') {
+                  glowColor = '#9b59b6';
+                  icon = '📚';
+              }
+              ctx.fillStyle = glowColor;
+              ctx.shadowColor = glowColor;
+              ctx.shadowBlur = 15;
+              ctx.beginPath();
+              ctx.arc(0, 0, 35, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.shadowBlur = 0;
+              ctx.strokeStyle = glowColor;
+              ctx.lineWidth = 3;
+              ctx.stroke();
+              // Draw object icon
+              ctx.fillStyle = '#fff';
+              ctx.font = 'bold 32px Arial';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(icon, 0, 0);
+          }
+          
+          ctx.restore();
+      });
+  };
+
+  const drawOwnerNPCs = (ctx: CanvasRenderingContext2D) => {
+      const st = gameState.current;
+      st.ownerNPCs.forEach(npc => {
+          // Draw shadow
+          drawShadow(ctx, npc.x, npc.w, GROUND_Y - (npc.y + npc.h));
+          
+          ctx.save();
+          ctx.translate(npc.x + npc.w / 2, npc.y + npc.h / 2);
+          
+          // Try to draw sprite image if available (sad child or happy child)
+          const img = ownerNPCImagesRef.current[npc.state];
+          if (img) {
+              // Draw the child image - maintain aspect ratio
+              const imgAspect = img.width / img.height;
+              let drawWidth = npc.w;
+              let drawHeight = npc.h;
+              
+              if (imgAspect > 1) {
+                  // Image is wider than tall
+                  drawHeight = drawWidth / imgAspect;
+              } else {
+                  // Image is taller than wide
+                  drawWidth = drawHeight * imgAspect;
+              }
+              
+              ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+          } else {
+              // Fallback: draw a simple representation
+              ctx.fillStyle = npc.state === 'happy' ? '#2ecc71' : '#95a5a6';
+              ctx.fillRect(-npc.w / 2, -npc.h / 2, npc.w, npc.h);
+              ctx.strokeStyle = '#34495e';
+              ctx.lineWidth = 2;
+              ctx.strokeRect(-npc.w / 2, -npc.h / 2, npc.w, npc.h);
+              // Draw face
+              ctx.fillStyle = '#f39c12';
+              ctx.beginPath();
+              ctx.arc(0, -20, 15, 0, Math.PI * 2);
+              ctx.fill();
+              // Draw expression
+              ctx.fillStyle = '#000';
+              if (npc.state === 'happy') {
+                  // Happy face
+                  ctx.beginPath();
+                  ctx.arc(-5, -25, 3, 0, Math.PI * 2);
+                  ctx.arc(5, -25, 3, 0, Math.PI * 2);
+                  ctx.fill();
+                  ctx.beginPath();
+                  ctx.arc(0, -18, 8, 0, Math.PI);
+                  ctx.stroke();
+              } else {
+                  // Sad/waiting face
+                  ctx.beginPath();
+                  ctx.arc(-5, -25, 3, 0, Math.PI * 2);
+                  ctx.arc(5, -25, 3, 0, Math.PI * 2);
+                  ctx.fill();
+                  ctx.beginPath();
+                  ctx.arc(0, -15, 8, Math.PI, 0, true);
+                  ctx.stroke();
+              }
+          }
+          
+          ctx.restore();
+          
+          // Draw arrow and text label if in waiting state (sad child)
+          if (npc.state === 'waiting') {
+              ctx.save();
+              // Draw downward arrow above NPC - make it more prominent
+              const arrowY = npc.y - 40;
+              const arrowX = npc.x + npc.w / 2;
+              
+              // Draw arrow with glow
+              ctx.shadowColor = '#f1c40f';
+              ctx.shadowBlur = 10;
+              ctx.fillStyle = '#f1c40f';
+              ctx.strokeStyle = '#f39c12';
+              ctx.lineWidth = 3;
+              ctx.beginPath();
+              ctx.moveTo(arrowX, arrowY);
+              ctx.lineTo(arrowX - 12, arrowY + 18);
+              ctx.lineTo(arrowX + 12, arrowY + 18);
+              ctx.closePath();
+              ctx.fill();
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+              
+              // Draw text label "השבת אבידה" - make it more prominent
+              ctx.fillStyle = '#fff';
+              ctx.strokeStyle = '#000';
+              ctx.lineWidth = 5;
+              ctx.font = 'bold 20px Arial';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'bottom';
+              const textY = arrowY - 8;
+              ctx.strokeText('השבת אבידה', arrowX, textY);
+              ctx.fillText('השבת אבידה', arrowX, textY);
+              
+              ctx.restore();
+          }
+      });
+  };
+
   const drawParticles = (ctx: CanvasRenderingContext2D) => {
       gameState.current.particles.forEach(p => {
           ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
@@ -2507,7 +2901,19 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
       gameState.current.floatingTexts.forEach(t => {
           ctx.globalAlpha = Math.min(1, t.life / 20); ctx.fillStyle = t.color;
           ctx.font = 'bold 24px Arial'; ctx.strokeStyle = 'black'; ctx.lineWidth = 3;
+          // Center text for messages at top (y < 250), otherwise use original position
+          const isTopMessage = t.y < 250;
+          if (isTopMessage) {
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'top';
+          } else {
+              ctx.textAlign = 'left';
+              ctx.textBaseline = 'alphabetic';
+          }
           ctx.strokeText(t.text, t.x, t.y); ctx.fillText(t.text, t.x, t.y);
+          // Reset alignment
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'alphabetic';
       });
       ctx.globalAlpha = 1;
   };
@@ -2523,6 +2929,8 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
       drawObstacles(ctx);
       drawBosses(ctx);
       drawCoins(ctx);
+      drawLostObjects(ctx);
+      drawOwnerNPCs(ctx);
       drawPlayer(ctx, gameState.current.player);
       drawParticles(ctx);
       drawFloatingTexts(ctx);
@@ -2533,6 +2941,8 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
     updatePlayer();
     updateObstacles();
     updateCoins();
+    updateLostObjects();
+    updateOwnerNPCs();
     updateBosses();
     updateParticles();
     updateFloatingTexts();
@@ -2540,6 +2950,8 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
     drawObstacles(ctx);
     drawBosses(ctx);
     drawCoins(ctx);
+    drawLostObjects(ctx);
+    drawOwnerNPCs(ctx);
     drawPlayer(ctx, gameState.current.player);
     drawParticles(ctx);
     drawFloatingTexts(ctx);
@@ -2591,6 +3003,67 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
     };
     // Try to load from public/faces folder
     img.src = '/faces/character1-face.png';
+  }, []);
+
+  // Load lost object images (bag, dubi, and book)
+  useEffect(() => {
+    // Load bag image
+    const bagImg = new Image();
+    bagImg.crossOrigin = 'anonymous';
+    bagImg.onload = () => {
+      lostObjectImagesRef.current['school_bag'] = bagImg;
+    };
+    bagImg.onerror = () => {
+      // Image doesn't exist, will use programmatic drawing
+    };
+    bagImg.src = '/lost_bag.png';
+    
+    // Load dubi (teddy bear) image
+    const dubiImg = new Image();
+    dubiImg.crossOrigin = 'anonymous';
+    dubiImg.onload = () => {
+      lostObjectImagesRef.current['dubi'] = dubiImg;
+    };
+    dubiImg.onerror = () => {
+      // Image doesn't exist, will use programmatic drawing
+    };
+    dubiImg.src = '/dubi_object.png';
+    
+    // Load book image
+    const bookImg = new Image();
+    bookImg.crossOrigin = 'anonymous';
+    bookImg.onload = () => {
+      lostObjectImagesRef.current['book'] = bookImg;
+    };
+    bookImg.onerror = () => {
+      // Image doesn't exist, will use programmatic drawing
+    };
+    bookImg.src = '/book_object.png';
+  }, []);
+
+  // Load owner NPC images
+  useEffect(() => {
+    // Load sad child (waiting state)
+    const sadImg = new Image();
+    sadImg.crossOrigin = 'anonymous';
+    sadImg.onload = () => {
+      ownerNPCImagesRef.current['waiting'] = sadImg;
+    };
+    sadImg.onerror = () => {
+      // Image doesn't exist, will use programmatic drawing
+    };
+    sadImg.src = '/npc_sad.png';
+    
+    // Load happy child (happy state)
+    const happyImg = new Image();
+    happyImg.crossOrigin = 'anonymous';
+    happyImg.onload = () => {
+      ownerNPCImagesRef.current['happy'] = happyImg;
+    };
+    happyImg.onerror = () => {
+      // Image doesn't exist, will use programmatic drawing
+    };
+    happyImg.src = '/npc_happy.png';
   }, []);
 
   // Resize canvas to fit container while maintaining aspect ratio - Optimized for mobile

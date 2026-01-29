@@ -49,6 +49,15 @@ export class MissionService {
                 progress: 0,
                 reward: 180,
                 completed: false
+            },
+            {
+                id: 'm6',
+                type: 'return_lost_objects',
+                description: 'לקיים 5 פעמים מצוות השבת אבידה',
+                target: 5,
+                progress: 0,
+                reward: 250,
+                completed: false
             }
         ];
     }
