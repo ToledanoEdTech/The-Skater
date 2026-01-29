@@ -10,12 +10,14 @@ interface HUDProps {
   powerups: PowerUpState;
   missions?: Mission[];
   currentStage?: string;
+  tzedakahCoinCount?: number;
+  hasTzedakahShield?: boolean;
   onJump: () => void;
   onTrick: (t: 'kickflip'|'superman'|'360') => void;
   onSlide?: () => void; // For swipe down
 }
 
-const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, missions = [], currentStage, onJump, onTrick, onSlide }) => {
+const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, missions = [], currentStage, tzedakahCoinCount = 0, hasTzedakahShield = false, onJump, onTrick, onSlide }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = React.useState(false);
 
@@ -168,17 +170,62 @@ const HUD: React.FC<HUDProps> = ({ score, coins, combo, highScore, powerups, mis
         )}
 
         {/* Powerup Status */}
-        <div className="flex gap-2 sm:gap-2.5 md:gap-3">
+        <div className="flex gap-2 sm:gap-2.5 md:gap-3 items-center">
             {powerups.shield && <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-lg animate-pulse text-sm sm:text-base md:text-lg"><i className="fas fa-shield-alt"></i></div>}
             {powerups.magnet && <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg animate-pulse text-sm sm:text-base md:text-lg"><i className="fas fa-magnet"></i></div>}
             {powerups.double && <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg animate-pulse text-sm sm:text-base md:text-lg">x2</div>}
             {powerups.slow && <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-teal-500 rounded-full flex items-center justify-center text-white shadow-lg animate-pulse text-sm sm:text-base md:text-lg"><i className="fas fa-clock"></i></div>}
+            {/* Tzedakah Shield Heart */}
+            {hasTzedakahShield && (
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                    <img 
+                        src="/heart_shield.png" 
+                        alt="Tzedakah Shield" 
+                        className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-14 object-contain animate-pulse"
+                        onError={(e) => {
+                            // Fallback if image doesn't exist - show a heart emoji
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            if (target.nextElementSibling) {
+                                (target.nextElementSibling as HTMLElement).style.display = 'block';
+                            }
+                        }}
+                    />
+                    <div className="hidden text-red-500 text-2xl sm:text-3xl md:text-4xl animate-pulse">❤️</div>
+                </div>
+            )}
+        </div>
+      </div>
+
+      {/* Tzedakah Box UI - Top Left (below score/coins) */}
+      <div className="absolute top-24 sm:top-28 md:top-32 left-2 sm:left-3 md:left-4 flex flex-col items-center gap-1.5 sm:gap-2 pointer-events-none z-20">
+        <div className="bg-slate-900/90 backdrop-blur-md px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl border-2 sm:border-3 border-amber-500/70 shadow-xl flex items-center gap-3 sm:gap-3.5 md:gap-4">
+          <img 
+            src="/tzedakah_box.png" 
+            alt="Tzedakah Box" 
+            className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain"
+            onError={(e) => {
+              // Fallback if image doesn't exist - show a box icon
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              if (target.nextElementSibling) {
+                (target.nextElementSibling as HTMLElement).style.display = 'block';
+              }
+            }}
+          />
+          <div className="hidden text-amber-400 text-3xl sm:text-4xl md:text-5xl">📦</div>
+          <div className="flex flex-col items-center">
+            <div className="text-amber-400 font-bold text-sm sm:text-base md:text-lg">צדקה</div>
+            <div className="text-white font-black text-base sm:text-lg md:text-xl lg:text-2xl tabular-nums">
+              {tzedakahCoinCount} / 20
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Stage Indicator */}
       {currentStage && (
-        <div className="absolute top-24 sm:top-20 md:top-16 left-1/2 transform -translate-x-1/2 bg-slate-900/90 backdrop-blur-md px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full border-2 sm:border-3 border-amber-500 shadow-xl">
+        <div className="absolute top-16 sm:top-14 md:top-12 left-1/2 transform -translate-x-1/2 bg-slate-900/90 backdrop-blur-md px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full border-2 sm:border-3 border-amber-500 shadow-xl z-10">
           <div className="text-white font-bold text-base sm:text-lg md:text-xl lg:text-2xl">{currentStage}</div>
         </div>
       )}

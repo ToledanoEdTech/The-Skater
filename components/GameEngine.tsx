@@ -17,7 +17,7 @@ interface GameEngineProps {
   sessionId: number; 
   activePowerups: PowerUpState;
   equippedGadget: GadgetType;
-  onScoreUpdate: (score: number, coins: number, combo: number) => void;
+  onScoreUpdate: (score: number, coins: number, combo: number, tzedakahCoinCount?: number, hasTzedakahShield?: boolean) => void;
   onGameOver: (finalScore: number, finalCoins: number) => void;
   onPowerupExpire: (type: keyof PowerUpState) => void;
   onMissionUpdate?: (missions: Mission[]) => void;
@@ -51,6 +51,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
     frame: 0,
     score: 0,
     coins: 0,
+    tzedakahCoinCount: 0,
     speed: BASE_SPEED,
     combo: 1,
     comboTimer: 0,
@@ -62,6 +63,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
     jumpedRamps: new Set<number>(), // Track which ramps we've jumped on
     lastMissionDistance: 0, // Track last distance for mission updates
     lastMissionTime: 0, // Track last time for mission updates
+    tzedakahMessageTimer: 0, // Timer for displaying the Hebrew message
     
     // Player
     player: {
@@ -84,6 +86,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
       slideTimer: 0,
       isCarryingLostObject: false,
       carryingObjectType: undefined,
+      hasTzedakahShield: false,
     } as PlayerState & { grindDistance: number; sliding: boolean; slideTimer: number },
 
     obstacles: [] as Obstacle[],
@@ -253,6 +256,8 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
     st.jumpedRamps.clear();
     st.lastMissionDistance = 0;
     st.lastMissionTime = 0;
+    st.tzedakahCoinCount = 0;
+    st.tzedakahMessageTimer = 0;
     st.player.y = GROUND_Y - st.player.height;
     st.player.vy = 0;
     st.player.crashed = false;
@@ -264,6 +269,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
     st.player.slideTimer = 0;
     st.player.isCarryingLostObject = false;
     st.player.carryingObjectType = undefined;
+    st.player.hasTzedakahShield = false;
     st.obstacles = [];
     st.coinsArr = [];
     st.particles = [];
@@ -1894,6 +1900,16 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
       return;
     }
 
+    // Check Tzedakah Shield before game over
+    if (p.hasTzedakahShield) {
+      p.hasTzedakahShield = false;
+      p.flashCounter = 60;
+      audioService.playShieldBreak();
+      spawnFloatingText("צדקה תציל ממוות", p.x, p.y - 30, '#ffd700');
+      spawnParticles(p.x + p.width/2, p.y + p.height/2, '#ffd700', 'sparkle', 15);
+      return; // Shield absorbed the hit
+    }
+
     // Grind Logic - For rails and benches
     if (obs.type === 'rail' || obs.type === 'bench' || obs.type === 'bench-1' || obs.type === 'bench-2') {
        if (p.vy > 0 && p.y + p.height <= obs.y + 40 && p.x + p.width/2 > obs.x && p.x + p.width/2 < obs.x + obs.w) {
@@ -2039,7 +2055,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
            onMissionUpdate(missionService.getMissions());
        }
        
-       if (st.frame % 60 === 0) onScoreUpdate(Math.floor(st.score), st.coins, st.combo);
+       if (st.frame % 60 === 0) onScoreUpdate(Math.floor(st.score), st.coins, st.combo, st.tzedakahCoinCount, p.hasTzedakahShield);
     }
   };
 
@@ -2166,6 +2182,25 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
               audioService.playCoin();
               spawnParticles(c.x, c.y, '#f1c40f', 'sparkle', 5);
               
+              // Increment Tzedakah counter
+              st.tzedakahCoinCount++;
+              
+              // Check if Tzedakah threshold reached (20 coins)
+              if (st.tzedakahCoinCount >= 20) {
+                  // Grant shield
+                  p.hasTzedakahShield = true;
+                  
+                  // Show Hebrew message
+                  spawnFloatingText("צדקה תציל ממוות", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, '#ffd700');
+                  st.tzedakahMessageTimer = 180; // 3 seconds at 60fps
+                  
+                  // Play powerup sound
+                  audioService.playPowerup();
+                  
+                  // Reset counter
+                  st.tzedakahCoinCount = 0;
+              }
+              
               // Update coin collection mission
               const reward = missionService.updateMissionByType('collect_coins', 1);
               if (reward > 0 && onReward) {
@@ -2173,7 +2208,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
                   spawnFloatingText(`משימה הושלמה! +${reward}₪`, CANVAS_WIDTH / 2, 120, '#00ff00');
               }
               
-              onScoreUpdate(st.score, st.coins, st.combo);
+              onScoreUpdate(st.score, st.coins, st.combo, st.tzedakahCoinCount, p.hasTzedakahShield);
           }
       });
       st.coinsArr = st.coinsArr.filter(c => !c.markedForDeletion);
@@ -2299,7 +2334,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
                   spawnParticles(npc.x + npc.w / 2, npc.y + npc.h / 2, '#00ff00', 'sparkle', 15);
                   spawnFloatingText(`השבת אבידה! +${doubleScore}`, npc.x + npc.w / 2, npc.y - 40, '#00ff00');
                   
-                  onScoreUpdate(st.score, st.coins, st.combo);
+                  onScoreUpdate(st.score, st.coins, st.combo, st.tzedakahCoinCount, p.hasTzedakahShield);
               }
           }
       });
@@ -2897,6 +2932,39 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
       ctx.globalAlpha = 1;
   };
   
+  const drawTzedakahMessage = (ctx: CanvasRenderingContext2D) => {
+      const st = gameState.current;
+      if (st.tzedakahMessageTimer > 0) {
+          ctx.save();
+          const alpha = Math.min(1, st.tzedakahMessageTimer / 60); // Fade in/out
+          ctx.globalAlpha = alpha;
+          
+          // Draw semi-transparent background
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+          ctx.fillRect(0, CANVAS_HEIGHT / 2 - 80, CANVAS_WIDTH, 160);
+          
+          // Draw glowing text
+          ctx.shadowColor = '#ffd700';
+          ctx.shadowBlur = 20;
+          ctx.fillStyle = '#ffd700';
+          ctx.strokeStyle = '#ffaa00';
+          ctx.lineWidth = 4;
+          ctx.font = 'bold 48px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          const message = "צדקה תציל ממוות";
+          ctx.strokeText(message, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+          ctx.fillText(message, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+          
+          ctx.shadowBlur = 0;
+          ctx.restore();
+          
+          // Decrement timer
+          st.tzedakahMessageTimer--;
+      }
+  };
+
   const drawFloatingTexts = (ctx: CanvasRenderingContext2D) => {
       gameState.current.floatingTexts.forEach(t => {
           ctx.globalAlpha = Math.min(1, t.life / 20); ctx.fillStyle = t.color;
@@ -2934,6 +3002,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
       drawPlayer(ctx, gameState.current.player);
       drawParticles(ctx);
       drawFloatingTexts(ctx);
+      drawTzedakahMessage(ctx);
       return;
     }
 
@@ -2955,6 +3024,7 @@ const GameEngine = forwardRef<GameEngineHandle, GameEngineProps>((props, ref) =>
     drawPlayer(ctx, gameState.current.player);
     drawParticles(ctx);
     drawFloatingTexts(ctx);
+    drawTzedakahMessage(ctx);
   }, [character]);
 
   // Load background image

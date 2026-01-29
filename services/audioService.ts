@@ -181,13 +181,23 @@ class AudioService {
     this.stopMusic();
 
     if (this.menuMusic) {
-      this.menuMusic.currentTime = 0;
+      // If music is already playing, don't restart it
+      if (!this.menuMusic.paused) {
+        return;
+      }
+      
+      // Only reset to start if music hasn't been played yet (first time)
+      // Otherwise, resume from where it was
+      if (this.menuMusic.currentTime === 0 || this.menuMusic.ended) {
+        this.menuMusic.currentTime = 0;
+      }
+      
       const playPromise = this.menuMusic.play();
       
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log('Menu music started');
+            console.log('Menu music started/resumed');
           })
           .catch((err) => {
             console.log('Menu music play failed (autoplay blocked):', err);
@@ -254,6 +264,16 @@ class AudioService {
   
   playGrind() {
       if(this.ready) this.grindSynth?.triggerAttackRelease("32n", "+0");
+  }
+  
+  playShieldBreak() {
+    if(this.ready) {
+      // Play a softer, more magical sound for shield break (different from crash)
+      this.powerupSynth?.triggerAttackRelease("16n", "+0");
+      if (this.coinSynth) {
+        this.coinSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
+      }
+    }
   }
 }
 

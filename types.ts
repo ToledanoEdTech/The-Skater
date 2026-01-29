@@ -4,7 +4,8 @@ export enum GameState {
   PAUSED = 'PAUSED',
   GAME_OVER = 'GAME_OVER',
   SHOP = 'SHOP',
-  LEADERBOARD = 'LEADERBOARD'
+  LEADERBOARD = 'LEADERBOARD',
+  INSTRUCTIONS = 'INSTRUCTIONS'
 }
 
 export type TrickType = 'none' | 'kickflip' | 'superman' | '360';
@@ -97,6 +98,7 @@ export interface PlayerState {
     crashTimer: number;
     isCarryingLostObject?: boolean;
     carryingObjectType?: 'school_bag' | 'dubi' | 'book';
+    hasTzedakahShield?: boolean;
 }
 
 export type MissionType = 'collect_coins' | 'trick_combo' | 'crash_distance' | 'grind_distance' | 'survive_time' | 'ramp_jumps' | 'return_lost_objects';

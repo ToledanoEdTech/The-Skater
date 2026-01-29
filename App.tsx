@@ -6,6 +6,7 @@ import HUD from './components/HUD';
 import GameOver from './components/GameOver';
 import Leaderboard from './components/Leaderboard';
 import PauseMenu from './components/PauseMenu';
+import Instructions from './components/Instructions';
 import OrientationCheck from './components/OrientationCheck';
 import { GameState, CharacterConfig, PowerUpType, PowerUpState, GadgetType, Mission } from './types';
 import { CHARACTERS } from './constants';
@@ -33,6 +34,8 @@ const App: React.FC = () => {
   const [score, setScore] = useState(0);
   const [sessionCoins, setSessionCoins] = useState(0);
   const [combo, setCombo] = useState(1);
+  const [tzedakahCoinCount, setTzedakahCoinCount] = useState(0);
+  const [hasTzedakahShield, setHasTzedakahShield] = useState(false);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [currentStage, setCurrentStage] = useState<string>('');
   
@@ -60,7 +63,7 @@ const App: React.FC = () => {
         hasInteracted = true;
         await audioService.init();
         // Start music based on current state after user interaction
-        if (gameState === GameState.MENU) {
+        if (gameState === GameState.MENU || gameState === GameState.SHOP || gameState === GameState.INSTRUCTIONS || gameState === GameState.LEADERBOARD) {
           audioService.startMenuMusic();
         } else if (gameState === GameState.PLAYING) {
           audioService.startMusic();
@@ -83,16 +86,18 @@ const App: React.FC = () => {
   // Audio State Management
   useEffect(() => {
     audioService.init().then(() => {
-      if (gameState === GameState.MENU) {
-        audioService.stopMusic();
-        audioService.startMenuMusic();
+      if (gameState === GameState.MENU || gameState === GameState.SHOP || gameState === GameState.INSTRUCTIONS || gameState === GameState.LEADERBOARD) {
+        // Menu music should continue playing across all menu screens
+        audioService.stopMusic(); // Stop game music if playing
+        audioService.startMenuMusic(); // Will resume if already playing, start if not
       } else if (gameState === GameState.PAUSED) {
         audioService.pauseMusic();
-        audioService.stopMenuMusic();
+        // Don't stop menu music here - it will resume when returning to menu
       } else if (gameState === GameState.PLAYING) {
-        audioService.stopMenuMusic();
+        audioService.stopMenuMusic(); // Stop menu music when starting game
         audioService.startMusic();
       } else {
+        // GAME_OVER - stop menu music
         audioService.stopMenuMusic();
       }
     });
@@ -134,6 +139,8 @@ const App: React.FC = () => {
     setScore(0);
     setSessionCoins(0);
     setCombo(1);
+    setTzedakahCoinCount(0);
+    setHasTzedakahShield(false);
     setSessionId(prev => prev + 1);
     setGameState(GameState.PLAYING);
     // Audio will be handled by the useEffect hook
@@ -185,7 +192,7 @@ const App: React.FC = () => {
             isPaused={gameState === GameState.PAUSED || gameState === GameState.GAME_OVER}
             activePowerups={activePowerups}
             equippedGadget={equippedGadget}
-            onScoreUpdate={(s, c, cm) => { setScore(s); setSessionCoins(c); setCombo(cm); }}
+            onScoreUpdate={(s, c, cm, t, h) => { setScore(s); setSessionCoins(c); setCombo(cm); if (t !== undefined) setTzedakahCoinCount(t); if (h !== undefined) setHasTzedakahShield(h); }}
             onGameOver={handleGameOver}
             onPowerupExpire={(type) => setActivePowerups(prev => ({ ...prev, [type]: false }))}
             onMissionUpdate={setMissions}
@@ -199,6 +206,7 @@ const App: React.FC = () => {
                 onStart={startGame} 
                 onOpenShop={() => setGameState(GameState.SHOP)}
                 onOpenLeaderboard={() => setGameState(GameState.LEADERBOARD)}
+                onOpenInstructions={() => setGameState(GameState.INSTRUCTIONS)}
                 wallet={wallet}
             />
         )}
@@ -220,6 +228,10 @@ const App: React.FC = () => {
             <Leaderboard onClose={() => setGameState(GameState.MENU)} />
         )}
 
+        {gameState === GameState.INSTRUCTIONS && (
+            <Instructions onClose={() => setGameState(GameState.MENU)} />
+        )}
+
         {gameState === GameState.PLAYING && (
             <HUD 
                 score={Math.floor(score)} 
@@ -229,6 +241,8 @@ const App: React.FC = () => {
                 powerups={activePowerups}
                 missions={missions}
                 currentStage={currentStage}
+                tzedakahCoinCount={tzedakahCoinCount}
+                hasTzedakahShield={hasTzedakahShield}
                 onJump={() => gameRef.current?.jump()}
                 onTrick={(t) => gameRef.current?.performTrick(t)}
                 onSlide={() => gameRef.current?.slide()}

@@ -6,6 +6,7 @@ interface MenuProps {
   onStart: (char: CharacterConfig) => void;
   onOpenShop: () => void;
   onOpenLeaderboard: () => void;
+  onOpenInstructions: () => void;
   wallet: number;
 }
 
@@ -126,7 +127,7 @@ const CharacterAvatar = ({ char }: { char: CharacterConfig }) => (
   </svg>
 );
 
-const Menu: React.FC<MenuProps> = ({ onStart, onOpenShop, onOpenLeaderboard, wallet }) => {
+const Menu: React.FC<MenuProps> = ({ onStart, onOpenShop, onOpenLeaderboard, onOpenInstructions, wallet }) => {
   const [selectedCharId, setSelectedCharId] = React.useState(CHARACTERS[0].id);
   const selectedChar = CHARACTERS.find(c => c.id === selectedCharId) || CHARACTERS[0];
 
@@ -211,6 +212,14 @@ const Menu: React.FC<MenuProps> = ({ onStart, onOpenShop, onOpenLeaderboard, wal
                 style={{ WebkitTapHighlightColor: 'transparent' }}
             >
                 <i className="fas fa-trophy"></i>
+            </button>
+            <button 
+                onClick={onOpenInstructions}
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-green-400 font-bold py-2 sm:py-2.5 md:py-3 lg:py-4 rounded-md sm:rounded-lg md:rounded-xl text-sm sm:text-base md:text-xl lg:text-2xl shadow-lg transition active:scale-95 border-b-2 sm:border-b-3 border-slate-900 flex items-center justify-center touch-manipulation"
+                title="הוראות"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+                <i className="fas fa-book"></i>
             </button>
         </div>
       </div>
